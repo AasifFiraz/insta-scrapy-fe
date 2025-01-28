@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+      - ./src:/app/src
+    environment:
+      - VITE_API_URL=http://54.208.63.22:5000
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

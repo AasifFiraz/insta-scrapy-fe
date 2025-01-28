@@ -1,0 +1,192 @@
+
+.editor-content {
+    -webkit-user-modify: read-write;
+    word-wrap: break-word;
+    -webkit-line-break: after-white-space;
+  }
+  
+  .editor-content:empty:before {
+    content: 'Start typing...';
+    color: #6b7280;
+  }
+  
+  /* Heading Styles */
+  .editor-content h1 {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0.67em 0;
+  }
+  
+  .editor-content h2 {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0.83em 0;
+  }
+  
+  .editor-content h3 {
+    display: block;
+    font-size: 1.17em;
+    font-weight: bold;
+    margin: 1em 0;
+  }
+  
+  .editor-content h4 {
+    display: block;
+    font-size: 1em;
+    font-weight: bold;
+    margin: 1.33em 0;
+  }
+  
+  .editor-content h5 {
+    display: block;
+    font-size: 0.83em;
+    font-weight: bold;
+    margin: 1.67em 0;
+  }
+  
+  .editor-content h6 {
+    display: block;
+    font-size: 0.67em;
+    font-weight: bold;
+    margin: 2.33em 0;
+  }
+  
+  .editor-content p {
+    display: block;
+    margin: 1em 0;
+  }
+  
+  .editor-content a {
+    color: #3b82f6;
+    text-decoration: underline;
+  }
+  
+  .editor-content b,
+  .editor-content strong {
+    font-weight: bold;
+  }
+  
+  .editor-content i,
+  .editor-content em {
+    font-style: italic;
+  }
+  
+  .editor-content u {
+    text-decoration: underline;
+  }
+  
+  /* Add these styles to your editor.css */
+.editor-content a {
+    color: #3b82f6;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  
+  .editor-content a:hover {
+    color: #2563eb;
+  }
+  
+
+  /* Override any inherited styles */
+.editor-content h1,
+.editor-content h2,
+.editor-content h3,
+.editor-content h4,
+.editor-content h5,
+.editor-content h6 {
+  all: revert;
+  color: white !important;
+  font-family: inherit;
+  margin: 1rem 0;
+}
+
+.editor-content h1 {
+  font-size: 2.25rem !important;
+  line-height: 2.5rem !important;
+  font-weight: 700 !important;
+}
+
+.editor-content h2 {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
+}
+
+.editor-content h3 {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  font-weight: 600 !important;
+}
+
+.editor-content h4 {
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+  font-weight: 600 !important;
+}
+
+.editor-content h5 {
+  font-size: 1.125rem !important;
+  line-height: 1.75rem !important;
+  font-weight: 600 !important;
+}
+
+.editor-content h6 {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+/* Ensure empty blocks show cursor */
+.editor-content h1:empty::after,
+.editor-content h2:empty::after,
+.editor-content h3:empty::after,
+.editor-content h4:empty::after,
+.editor-content h5:empty::after,
+.editor-content h6:empty::after,
+.editor-content p:empty::after {
+  content: '\200B'; /* Zero-width space */
+}
+
+/* Add these styles to your editor.css */
+.editor-content {
+    -webkit-user-modify: read-write;
+    word-wrap: break-word;
+    -webkit-line-break: after-white-space;
+    line-height: 1.5;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .editor-content:empty:before {
+    content: 'Start typing...';
+    color: #6b7280;
+  }
+  
+  /* Scrollbar styling */
+  .editor-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .editor-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  
+  .editor-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+  
+  .editor-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Firefox scrollbar */
+  .editor-content {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1);
+  }
+  
