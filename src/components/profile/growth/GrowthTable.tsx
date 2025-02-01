@@ -1,17 +1,10 @@
 import React from 'react';
 import { formatNumber } from '../../../utils/numberFormat';
-
-interface GrowthData {
-  date: string;
-  totalFollowers: number;
-  followerChange: number;
-  totalPosts: number;
-  newPosts: number;
-}
+import { GrowthDataPoint } from '../../../hooks/useProfileAnalytics';
 
 interface GrowthTableProps {
   handle: string;
-  growthData: GrowthData[];
+  growthData: GrowthDataPoint[];
 }
 
 export const GrowthTable: React.FC<GrowthTableProps> = ({ growthData }) => {

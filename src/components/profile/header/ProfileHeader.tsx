@@ -3,14 +3,15 @@ import { ProfileAvatar } from './ProfileAvatar';
 import { ProfileInfo } from './ProfileInfo';
 import { ProfileTabs } from './ProfileTabs';
 import { SaveProfileButton } from '../../common/SaveProfileButton';
-import { useProfileAnalytics } from '../../../hooks/useProfileAnalytics';
+import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 
 interface ProfileHeaderProps {
   handle: string;
+  analytics: UseProfileAnalyticsResult;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle }) => {
-  const { profileData, isLoading, error } = useProfileAnalytics(handle);
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics }) => {
+  const { profileData, isLoading, error } = analytics;
 
   if (error) {
     return (

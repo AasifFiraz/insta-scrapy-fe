@@ -5,19 +5,17 @@ import { GrowthTable } from '../growth/GrowthTable';
 import { EngagementDistribution } from '../insights/EngagementDistribution';
 import { PostMixDistribution } from '../insights/PostMixDistribution';
 import { useTimeRange } from '../context/TimeRangeContext';
-import { useProfileAnalytics } from '../../../hooks/useProfileAnalytics';
+import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 
 interface AnalyticsTabProps {
   handle: string;
+  analytics: UseProfileAnalyticsResult;
 }
 
-export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ handle }) => {
+export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ handle, analytics }) => {
   const { timeRange } = useTimeRange();
-  const { profileData, growthData, engagementData, isLoading, error } = useProfileAnalytics(handle);
+  const { profileData, growthData, engagementData, isLoading, error } = analytics;
 
-  useEffect(() => {
-    console.log('AnalyticsTab mounted with handle:', handle);
-  }, [handle]);
 
   if (error) {
     return (
@@ -27,22 +25,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ handle }) => {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white/5 rounded-xl p-6 h-32" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  console.log('Rendering analytics with data:', { profileData, growthData, engagementData });
-
   // Calculate changes if growthData is available
-  const changes = growthData?.length > 1 ? {
+  const changes = growthData?.length > 0 ? {
     followerChange: growthData[growthData.length - 1].followerChange,
     followingChange: 0,
     postsChange: growthData[growthData.length - 1].newPosts
@@ -63,15 +47,18 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ handle }) => {
         <div className="lg:col-span-2">
           <GrowthTable 
             handle={handle} 
-            growthData={growthData || []}
+            growthData={growthData}
           />
         </div>
         <div className="space-y-6">
+          {/* Always render components but pass isLoading state */}
           <EngagementDistribution 
-            distribution={engagementData?.distribution}
+            distribution={engagementData?.engagement?.distribution}
+            isLoading={isLoading || !engagementData}
           />
           <PostMixDistribution 
-            postMix={engagementData?.postMix}
+            postMix={engagementData?.engagement?.postMix}
+            isLoading={isLoading || !engagementData}
           />
         </div>
       </div>

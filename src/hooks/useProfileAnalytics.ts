@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface ProfileData {
   username: string;
@@ -11,47 +11,71 @@ interface ProfileData {
   isPrivate: boolean;
 }
 
-interface EngagementData {
-  distribution: {
-    likes: number;
-    comments: number;
+interface GrowthDataPoint {
+  date: string;
+  followerChange: number;
+  newPosts: number;
+  totalFollowers: number;
+  totalPosts: number;
+}
+
+interface StatsData {
+  engagement: {
+    distribution: {
+      comments: number;
+      likes: number;
+    };
+    postMix: {
+      carousels: number;
+      images: number;
+      reels: number;
+    };
   };
-  postMix: {
-    reels: number;
-    carousels: number;
-    images: number;
-  };
+  recentPosts: any[];
+  totalFollowers: number;
+  totalPosts: number;
 }
 
 interface UseProfileAnalyticsResult {
   profileData: ProfileData | null;
-  growthData: any[];
-  engagementData: EngagementData | null;
+  growthData: GrowthDataPoint[];
+  engagementData: StatsData | null;
   isLoading: boolean;
   error: string | null;
 }
 
 export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult => {
-    const [profileData, setProfileData] = useState<ProfileData | null>(null);
-    const [growthData, setGrowthData] = useState<any[]>([]);
-    const [engagementData, setEngagementData] = useState<EngagementData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [growthData, setGrowthData] = useState<GrowthDataPoint[]>([]);
+  const [engagementData, setEngagementData] = useState<StatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-    useEffect(() => {
-      const fetchData = async () => {
-        if (!handle) {
-          console.error('No handle provided');
-          return;
-        }
-        
-        console.log('Fetching data for handle:', handle);
-        setIsLoading(true);
-        setError(null);
-  
-        try {
-          // Fetch profile info
-          console.log('Fetching profile info...');
+  // Use refs to track if the requests are in progress
+  const profileRequestInProgress = useRef(false);
+  const growthRequestInProgress = useRef(false);
+  const statsRequestInProgress = useRef(false);
+
+  // Use ref to track mounted state
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    // Set mounted state
+    isMounted.current = true;
+
+    const fetchData = async () => {
+      if (!handle) {
+        console.error('No handle provided');
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Profile info fetch
+        if (!profileRequestInProgress.current) {
+          profileRequestInProgress.current = true;
           const profileResponse = await fetch(`http://localhost:5000/api/profile/${handle}`);
           
           if (!profileResponse.ok) {
@@ -59,61 +83,97 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
           }
           
           const profileInfo = await profileResponse.json();
-  
-          // If there's a profile picture, fetch it through the proxy
-          if (profileInfo.profilePic) {
-            try {
-              const proxyResponse = await fetch(
-                `http://localhost:5000/api/proxy/image?url=${encodeURIComponent(profileInfo.profilePic)}`
-              );
+
+          // if (profileInfo.profilePic && isMounted.current) {
+          //   try {
+          //     const proxyResponse = await fetch(
+          //       `http://localhost:5000/api/proxy/image?url=${encodeURIComponent(profileInfo.profilePic)}`
+          //     );
               
-              if (proxyResponse.ok) {
-                const proxyData = await proxyResponse.json();
-                profileInfo.profilePic = proxyData.imageUrl; // This will be a base64 data URL
-              } else {
-                console.error('Failed to proxy profile image');
-                // Fallback to a default avatar if proxy fails
-                profileInfo.profilePic = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileInfo.fullName)}`;
-              }
-            } catch (proxyError) {
-              console.error('Error proxying profile image:', proxyError);
-              // Fallback to a default avatar
-              profileInfo.profilePic = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileInfo.fullName)}`;
-            }
+          //     if (proxyResponse.ok) {
+          //       const proxyData = await proxyResponse.json();
+          //       profileInfo.profilePic = proxyData.imageUrl;
+          //     } else {
+          //       profileInfo.profilePic = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileInfo.fullName)}`;
+          //     }
+          //   } catch (proxyError) {
+          //     profileInfo.profilePic = `https://ui-avatars.com/api/?name=${encodeURIComponent(profileInfo.fullName)}`;
+          //   }
+          // }
+
+          if (isMounted.current) {
+            setProfileData(profileInfo);
           }
-  
-          setProfileData(profileInfo);
-  
-          // Fetch growth data
+        }
+
+        // Growth data fetch
+        if (!growthRequestInProgress.current) {
+          growthRequestInProgress.current = true;
           const growthResponse = await fetch(`http://localhost:5000/api/profile/${handle}/growth`);
           if (!growthResponse.ok) {
             throw new Error(`Growth data fetch failed: ${growthResponse.statusText}`);
           }
           const growthInfo = await growthResponse.json();
-          setGrowthData(growthInfo);
-  
-          // Fetch stats
+          
+          // Make sure we're setting the actual array of growth data
+          if (isMounted.current && Array.isArray(growthInfo)) {
+            setGrowthData(growthInfo);
+          }
+        }
+
+        // Stats fetch
+        if (!statsRequestInProgress.current) {
+          statsRequestInProgress.current = true;
           const statsResponse = await fetch(`http://localhost:5000/api/profile/${handle}/stats`);
           if (!statsResponse.ok) {
             throw new Error(`Stats fetch failed: ${statsResponse.statusText}`);
           }
           const statsInfo = await statsResponse.json();
-          setEngagementData({
-            distribution: statsInfo.engagement.distribution,
-            postMix: statsInfo.engagement.postMix
-          });
-  
-        } catch (err) {
-          console.error('Error fetching analytics:', err);
+          
+          if (isMounted.current) {
+            setEngagementData(statsInfo);
+          }
+        }
+
+      } catch (err) {
+        console.error('Error fetching analytics:', err);
+        if (isMounted.current) {
           setError(err instanceof Error ? err.message : 'Failed to fetch analytics data');
-        } finally {
+        }
+      } finally {
+        if (isMounted.current) {
           setIsLoading(false);
         }
-      };
-  
-      fetchData();
-    }, [handle]);
-  
-    return { profileData, growthData, engagementData, isLoading, error };
-  };
-  
+        // Reset request flags
+        profileRequestInProgress.current = false;
+        growthRequestInProgress.current = false;
+        statsRequestInProgress.current = false;
+      }
+    };
+
+    fetchData();
+
+    // Cleanup function
+    return () => {
+      isMounted.current = false;
+      profileRequestInProgress.current = false;
+      growthRequestInProgress.current = false;
+      statsRequestInProgress.current = false;
+    };
+  }, [handle]);
+
+  // Add debug logging for state changes
+  useEffect(() => {
+    console.log('Current state:', {
+      profileData,
+      growthData,
+      engagementData,
+      isLoading,
+      error
+    });
+  }, [profileData, growthData, engagementData, isLoading, error]);
+
+  return { profileData, growthData, engagementData, isLoading, error };
+};
+
+export type { UseProfileAnalyticsResult, ProfileData, StatsData, GrowthDataPoint };

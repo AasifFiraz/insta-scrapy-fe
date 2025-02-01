@@ -4,6 +4,7 @@ import { PostType } from '../../../types/postType';
 import { DateRangeSelector } from '../save/DateRangeSelector';
 import { InsightsMetricsGrid } from './metrics/InsightsMetricsGrid';
 import { SavedAnalytics } from '../save/analytics/SavedAnalytics';
+import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { useInsightsMetrics } from '../../../hooks/useInsightsMetrics';
 
 interface InsightsTabProps {
@@ -11,13 +12,15 @@ interface InsightsTabProps {
   startDate?: Date | null;
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
+  analytics: UseProfileAnalyticsResult;
 }
 
 export const InsightsTab: React.FC<InsightsTabProps> = ({ 
   handle,
   startDate,
   endDate,
-  onDateChange
+  onDateChange,
+  analytics
 }) => {
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
   const { metrics, isLoading, error } = useInsightsMetrics(handle);

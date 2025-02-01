@@ -3,6 +3,7 @@ import { AnalyticsTab } from '../analytics/AnalyticsTab';
 import { PostsTab } from '../posts/PostsTab';
 import { InsightsTab } from '../insights/InsightsTab';
 import { useTimeRange } from '../context/TimeRangeContext';
+import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 
 interface TabContentProps {
   activeTab: string;
@@ -10,6 +11,7 @@ interface TabContentProps {
   startDate?: Date | null;
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
+  analytics: UseProfileAnalyticsResult;
 }
 
 export const TabContent: React.FC<TabContentProps> = ({ 
@@ -17,13 +19,14 @@ export const TabContent: React.FC<TabContentProps> = ({
   handle,
   startDate,
   endDate,
-  onDateChange
+  onDateChange,
+  analytics
 }) => {
   const { timeRange } = useTimeRange();
 
   switch (activeTab) {
     case 'analytics':
-      return <AnalyticsTab handle={handle} />;
+      return <AnalyticsTab handle={handle} analytics={analytics} />;
     case 'posts':
       return (
         <PostsTab 
@@ -40,6 +43,7 @@ export const TabContent: React.FC<TabContentProps> = ({
           startDate={startDate}
           endDate={endDate}
           onDateChange={onDateChange}
+          analytics={analytics}
         />
       );
     default:

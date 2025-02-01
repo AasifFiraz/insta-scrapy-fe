@@ -5,8 +5,8 @@ import { format } from 'date-fns';
 import { DateRangePopup } from './DateRangePopup';
 
 interface DateRangeProps {
-  startDate: Date | null;
-  endDate: Date | null;
+  startDate: Date | null | undefined;  // Updated to allow undefined
+  endDate: Date | null | undefined;    // Updated to allow undefined
   onDateChange: (start: Date | null, end: Date | null) => void;
 }
 
@@ -20,7 +20,7 @@ export const DateRangeSelector: React.FC<DateRangeProps> = ({
 
   useClickOutside(buttonRef, () => setIsOpen(false), isOpen);
 
-  const formatDisplayDate = (date: Date | null) => {
+  const formatDisplayDate = (date: Date | null | undefined) => {
     if (!date) return '';
     return format(date, 'MMM d, yyyy');
   };
@@ -75,8 +75,8 @@ export const DateRangeSelector: React.FC<DateRangeProps> = ({
 
       {isOpen && (
         <DateRangePopup
-          startDate={startDate}
-          endDate={endDate}
+          startDate={startDate || null}  // Convert undefined to null
+          endDate={endDate || null}      // Convert undefined to null
           onDateChange={onDateChange}
           onClose={() => setIsOpen(false)}
           isMobile={window.innerWidth < 640}

@@ -25,11 +25,11 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
   const navigate = useNavigate();
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
-  const debouncedQuery = useDebounce(query, 10000);
+  const debouncedQuery = useDebounce(query, 1000);
 
   React.useEffect(() => {
     const fetchResults = async () => {
-      if (!debouncedQuery) {
+      if (debouncedQuery.length < 2) {
         setResults([]);
         return;
       }
