@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { SearchResult } from "./SearchResult";
 import { useDebounce } from "../../hooks/useDebounce";
 
+const URL = process.env.NODE_ENV === "production" ? "https://postlyze.com" : "http://localhost:3000";
+
 interface SearchResult {
   username: string;
   fullName: string;
@@ -37,7 +39,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
       setIsLoading(true);
       try {
         const response = await fetch(
-          `/api/search/profiles?q=${encodeURIComponent(debouncedQuery)}`
+          `${URL}/api/search/profiles?q=${encodeURIComponent(debouncedQuery)}`
         );
         if (!response.ok) throw new Error("Search failed");
         const data = await response.json();

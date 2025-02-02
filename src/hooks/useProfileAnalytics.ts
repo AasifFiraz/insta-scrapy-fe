@@ -50,6 +50,8 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
   const [engagementData, setEngagementData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const baseURL = process.env.NODE_ENV === "production" ? "https://postlyze.com" : "http://localhost:3000";
   
   // Use refs to track if the requests are in progress
   const profileRequestInProgress = useRef(false);
@@ -76,7 +78,7 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
         // Profile info fetch
         if (!profileRequestInProgress.current) {
           profileRequestInProgress.current = true;
-          const profileResponse = await fetch(`http://localhost:5000/api/profile/${handle}`);
+          const profileResponse = await fetch(`${baseURL}api/profile/${handle}`);
           
           if (!profileResponse.ok) {
             throw new Error(`Profile fetch failed: ${profileResponse.statusText}`);
@@ -87,7 +89,7 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
           // if (profileInfo.profilePic && isMounted.current) {
           //   try {
           //     const proxyResponse = await fetch(
-          //       `http://localhost:5000/api/proxy/image?url=${encodeURIComponent(profileInfo.profilePic)}`
+          //       `https://postlyze.com/api/proxy/image?url=${encodeURIComponent(profileInfo.profilePic)}`
           //     );
               
           //     if (proxyResponse.ok) {
@@ -109,7 +111,7 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
         // Growth data fetch
         if (!growthRequestInProgress.current) {
           growthRequestInProgress.current = true;
-          const growthResponse = await fetch(`http://localhost:5000/api/profile/${handle}/growth`);
+          const growthResponse = await fetch(`${baseURL}/api/profile/${handle}/growth`);
           if (!growthResponse.ok) {
             throw new Error(`Growth data fetch failed: ${growthResponse.statusText}`);
           }
@@ -124,7 +126,7 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
         // Stats fetch
         if (!statsRequestInProgress.current) {
           statsRequestInProgress.current = true;
-          const statsResponse = await fetch(`http://localhost:5000/api/profile/${handle}/stats`);
+          const statsResponse = await fetch(`${baseURL}/api/profile/${handle}/stats`);
           if (!statsResponse.ok) {
             throw new Error(`Stats fetch failed: ${statsResponse.statusText}`);
           }
