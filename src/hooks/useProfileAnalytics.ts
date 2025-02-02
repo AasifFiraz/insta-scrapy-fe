@@ -51,7 +51,7 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const baseURL = process.env.NODE_ENV === "production" ? "https://postlyze.com" : "http://localhost:3000";
+  const baseURL = process.env.NODE_ENV === "production" ? "https://postlyze.com/" : "http://localhost:3000";
   
   // Use refs to track if the requests are in progress
   const profileRequestInProgress = useRef(false);
