@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { MetricsOverview } from '../metrics/MetricsOverview';
-import { FollowersChart } from '../charts/FollowersChart';
 import { GrowthTable } from '../growth/GrowthTable';
 import { EngagementDistribution } from '../insights/EngagementDistribution';
 import { PostMixDistribution } from '../insights/PostMixDistribution';
@@ -20,7 +19,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ handle, analytics })
   if (error) {
     return (
       <div className="text-red-500 p-4">
-        Error loading analytics: {error}
+          Error loading analytics: {error}
       </div>
     );
   }
@@ -47,11 +46,11 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ handle, analytics })
         <div className="lg:col-span-2">
           <GrowthTable 
             handle={handle} 
-            growthData={growthData}
+            growthData={growthData || []}
+            isLoading={isLoading}
           />
         </div>
         <div className="space-y-6">
-          {/* Always render components but pass isLoading state */}
           <EngagementDistribution 
             distribution={engagementData?.engagement?.distribution}
             isLoading={isLoading || !engagementData}

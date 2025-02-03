@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, Navigate } from 'react-router-dom';
 import { ProfileHeader } from './header/ProfileHeader';
 import { TabContent } from './tabs/TabContent';
 import { TimeRangeProvider } from './context/TimeRangeContext';

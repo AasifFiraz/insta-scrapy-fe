@@ -4,6 +4,7 @@ import { ProfileInfo } from './ProfileInfo';
 import { ProfileTabs } from './ProfileTabs';
 import { SaveProfileButton } from '../../common/SaveProfileButton';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
+import { UserX } from 'lucide-react';
 
 interface ProfileHeaderProps {
   handle: string;
@@ -13,11 +14,17 @@ interface ProfileHeaderProps {
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics }) => {
   const { profileData, isLoading, error } = analytics;
 
-  if (error) {
+  if (error?.includes('Profile fetch failed') || analytics?.error?.includes('NOT FOUND')) {
     return (
-      <div className="bg-white/5 rounded-xl p-4 sm:p-6">
-        <div className="text-red-500">
-          Error loading profile: {error}
+      <div className="min-h-screen bg-black pt-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white/5 rounded-xl p-8 text-center">
+            <UserX className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-2">Profile Not Found</h2>
+            <p className="text-gray-400">
+              The profile @{handle} could not be found. Please check the username and try again.
+            </p>
+          </div>
         </div>
       </div>
     );
