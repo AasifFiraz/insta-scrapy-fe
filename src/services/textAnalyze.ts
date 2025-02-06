@@ -20,7 +20,7 @@ interface ApiResponse {
   complexity: ComplexityStats;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://postlyze.com';
+const API_URL = process.env.NODE_ENV === "production" ? "https://postlyze.com" : "http://localhost:5000";
 
 const isValidReadabilityLevel = (level: string): level is ReadabilityLevel => {
   return ['Very Easy', 'Easy', 'Good', 'Moderate', 'Complex'].includes(level);
