@@ -5,6 +5,7 @@ import { useDebounce } from "../../hooks/useDebounce";
 
 const URL = process.env.NODE_ENV === "production" ? "https://postlyze.com/" : "http://localhost:5000/";
 
+
 interface SearchResult {
   username: string;
   fullName: string;

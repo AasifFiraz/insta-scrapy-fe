@@ -3,8 +3,11 @@ import { store } from '../store/store';
 import { logout } from '../store/features/auth/authSlice';
 import { clearProfile } from '../store/features/user/userSlice';
 
+const URL = process.env.NODE_ENV === "production" ? "https://postlyze.com" : "http://localhost:5000";
+
+//Change URL to save changes 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api'
+  baseURL: `${URL}/api`
 });
 
 // Add request interceptor to include token
