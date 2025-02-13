@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, User, AtSign, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, AtSign, ArrowRight, Check, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../store/hooks';
 import { signup } from '../../store/features/auth/authThunks';
@@ -15,8 +15,54 @@ interface FormData {
 interface FormErrors {
   username?: string;
   email?: string;
-  password?: string;
+  password?: string[];
 }
+
+interface PasswordRequirement {
+  message: string;
+  test: (password: string) => boolean;
+}
+
+const passwordRequirements: PasswordRequirement[] = [
+  {
+    message: 'At least 8 characters long',
+    test: (password) => password.length >= 8,
+  },
+  {
+    message: 'Contains at least one number',
+    test: (password) => /\d/.test(password),
+  },
+  {
+    message: 'Contains at least one uppercase letter',
+    test: (password) => /[A-Z]/.test(password),
+  },
+  {
+    message: 'Contains at least one lowercase letter',
+    test: (password) => /[a-z]/.test(password),
+  },
+];
+
+const PasswordRequirementsList: React.FC<{ password: string }> = ({ password }) => {
+  return (
+    <div className="mt-2 space-y-2">
+      {passwordRequirements.map((req, index) => {
+        const isMet = req.test(password);
+        return (
+          <div key={index} className="flex items-center gap-2">
+            {isMet ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <X className="w-4 h-4 text-gray-400" />
+            )}
+            <span className={`text-sm ${isMet ? 'text-green-500' : 'text-gray-400'}`}>
+              {req.message}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,8 +95,12 @@ export const SignupPage: React.FC = () => {
     }
     
     // Password validation
-    if (data.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
+    const failedRequirements = passwordRequirements
+      .filter(req => !req.test(data.password))
+      .map(req => req.message);
+    
+    if (failedRequirements.length > 0) {
+      errors.password = failedRequirements;
     }
     
     return errors;
@@ -97,8 +147,9 @@ export const SignupPage: React.FC = () => {
         resultAction.refresh_token
       );
       navigate('/');
-    } catch (error) {
-      setApiError(error as string);
+    } catch (error: unknown) {
+      // The error from createAsyncThunk's rejectWithValue is available directly
+      setApiError(typeof error === 'string' ? error : 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -218,9 +269,17 @@ export const SignupPage: React.FC = () => {
                 />
                 <Lock className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+              {errors.password && Array.isArray(errors.password) && (
+                <div className="mt-1 text-sm text-red-500">
+                  Please fix the following:
+                  <ul className="list-disc list-inside mt-1">
+                    {errors.password.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
+              <PasswordRequirementsList password={formData.password} />
             </div>
 
             {/* Terms and Conditions */}

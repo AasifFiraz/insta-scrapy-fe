@@ -1,5 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { fetchProfileSuccess, clearProfile } from '../user/userSlice';
+import { isAxiosError } from 'axios';
 import axiosInstance from '../../../utils/axios';
 
 interface LoginCredentials {
@@ -59,9 +60,9 @@ export const signup = createAsyncThunk(
       dispatch(fetchProfileSuccess(response.data.user));
       
       return response.data;
-    } catch (error) {
-      if (axiosInstance.isAxiosError(error) && error.response) {
-        return rejectWithValue(error.response.data.message || 'Failed to create account');
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.data) {
+        return rejectWithValue(error.response.data.error || 'Failed to create account');
       }
       return rejectWithValue('An unexpected error occurred');
     }
@@ -82,8 +83,8 @@ export const login = createAsyncThunk(
       dispatch(fetchProfileSuccess(response.data.user));
       
       return response.data;
-    } catch (error) {
-      if (axiosInstance.isAxiosError(error) && error.response) {
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.data) {
         return rejectWithValue(error.response.data.message || 'Login failed');
       }
       return rejectWithValue('An unexpected error occurred');
@@ -121,13 +122,13 @@ export const checkAuth = createAsyncThunk(
       dispatch(fetchProfileSuccess(response.data.user));
       
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Refresh token error:', error);
       // Clear everything on refresh token failure
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       dispatch(clearProfile());
-      if (axiosInstance.isAxiosError(error) && error.response) {
+      if (isAxiosError(error) && error.response?.data) {
         return rejectWithValue(error.response.data.message);
       }
       return rejectWithValue('Failed to refresh authentication');

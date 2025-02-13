@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTimeRange } from '../components/profile/context/TimeRangeContext';
 
 interface ProfileData {
   username: string;
@@ -19,6 +20,18 @@ interface GrowthDataPoint {
   totalPosts: number;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  thumbnail: string;
+  createdAt: string;
+  stats: {
+    views: number;
+    likes: number;
+    comments: number;
+  };
+}
+
 interface StatsData {
   engagement: {
     distribution: {
@@ -31,7 +44,7 @@ interface StatsData {
       reels: number;
     };
   };
-  recentPosts: any[];
+  recentPosts: Post[];
   totalFollowers: number;
   totalPosts: number;
 }
@@ -45,6 +58,7 @@ interface UseProfileAnalyticsResult {
 }
 
 export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult => {
+  const { timeRange } = useTimeRange();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [growthData, setGrowthData] = useState<GrowthDataPoint[]>([]);
   const [engagementData, setEngagementData] = useState<StatsData | null>(null);
@@ -93,13 +107,14 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
         // Growth data fetch
         if (!growthRequestInProgress.current) {
           growthRequestInProgress.current = true;
-          const growthResponse = await fetch(`${baseURL}api/profile/${handle}/growth`);
+          const days = timeRange === '7D' ? 7 : timeRange === '28D' ? 28 : 90;
+          const growthResponse = await fetch(`${baseURL}api/profile/${handle}/growth?days=${days}`);
+          
           if (!growthResponse.ok) {
             throw new Error(`Growth data fetch failed: ${growthResponse.statusText}`);
           }
           const growthInfo = await growthResponse.json();
           
-          // Make sure we're setting the actual array of growth data
           if (isMounted.current && Array.isArray(growthInfo)) {
             setGrowthData(growthInfo);
           }
@@ -144,7 +159,7 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
       growthRequestInProgress.current = false;
       statsRequestInProgress.current = false;
     };
-  }, [handle]);
+  }, [handle, timeRange, baseURL]);
 
   // Add debug logging for state changes
   useEffect(() => {

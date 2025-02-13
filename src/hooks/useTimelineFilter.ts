@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react';
 import { TimeRange } from '../types/metrics';
 import { subDays } from 'date-fns';
 
-export const useTimelineFilter = () => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('28D');
+export const useTimelineFilter = (initialTimeRange: TimeRange = '7D') => {
+  const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
@@ -39,7 +39,7 @@ export const useTimelineFilter = () => {
         start = subDays(end, 90);
         break;
       default:
-        start = subDays(end, 28);
+        start = subDays(end, 7); // Changed default to 7 days
     }
 
     return { start, end };
