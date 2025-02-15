@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axios';
+import { jwtDecode } from 'jwt-decode';
 
 interface User {
   id: string;
@@ -11,74 +13,128 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (userData: User, accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  refreshTokens: () => Promise<string | null>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+interface JwtPayload {
+  exp: number;
+  sub: string;
+  iat: number;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check for both user data and tokens in localStorage on initial load
-    const storedUser = localStorage.getItem('user');
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
+  const refreshTokens = async (): Promise<string | null> => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) return null;
 
-    if (storedUser && accessToken && refreshToken) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        // Clear everything if there's an error
-        localStorage.removeItem('user');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    } else {
-      // If any of the required items are missing, clear everything
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      setIsAuthenticated(false);
-      setUser(null);
+      const response = await axiosInstance.post('/refresh-token', {
+        refresh_token: refreshToken
+      });
+
+      const { access_token, refresh_token } = response.data;
+      
+      localStorage.setItem('accessToken', access_token);
+      localStorage.setItem('refreshToken', refresh_token);
+      
+      return access_token;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      logout();
+      return null;
     }
+  };
+
+  const fetchUserData = async (token: string) => {
+    try {
+      const response = await axiosInstance.get('/auth/user', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const userData = response.data;
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      logout();
+    }
+  };
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
+
+        if (!accessToken || !refreshToken) {
+          throw new Error('No tokens found');
+        }
+
+        // Check if access token is expired
+        const decodedToken: JwtPayload = jwtDecode(accessToken);
+        const currentTime = Date.now() / 1000;
+
+        console.log('Decoded token:', decodedToken);
+        if (decodedToken.exp < currentTime) {
+          console.log('Token is expired, trying to refresh');
+          // Token is expired, try to refresh
+          const newAccessToken = await refreshTokens();
+          if (newAccessToken) {
+            await fetchUserData(newAccessToken);
+          } else {
+            throw new Error('Failed to refresh token');
+          }
+        } else {
+          // Token is still valid
+          await fetchUserData(accessToken);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = (userData: User, accessToken: string, refreshToken: string) => {
-    // Store user data and tokens in localStorage
+  const login = (userData: User, access_token: string, refresh_token: string) => {
     localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('accessToken', access_token);
+    localStorage.setItem('refreshToken', refresh_token);
     
-    // Update state
     setUser(userData);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    // Clear localStorage
     localStorage.removeItem('user');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     
-    // Update state
     setUser(null);
     setIsAuthenticated(false);
     
-    // Redirect to home page
     navigate('/');
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout, refreshTokens }}>
       {children}
     </AuthContext.Provider>
   );
