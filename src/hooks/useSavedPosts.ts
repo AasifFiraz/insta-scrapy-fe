@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Post } from '../types/post';
 import { PostType } from '../types/postType';
-import { fetchProfilePosts } from '../services/postsService';
+import { getPosts } from '../services/postsService';
 
 export const useSavedPosts = (handle: string, postType: PostType | 'all') => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -10,10 +10,10 @@ export const useSavedPosts = (handle: string, postType: PostType | 'all') => {
   useEffect(() => {
     const loadPosts = async () => {
       setIsLoading(true);
-      const response = await fetchProfilePosts(handle, undefined, postType);
-      if (response.data) {
-        setPosts(response.data);
-      }
+      // Only pass postType if it's not 'all'
+      const type = postType === 'all' ? undefined : postType;
+      const fetchedPosts = await getPosts(handle, 7, type);
+      setPosts(fetchedPosts);
       setIsLoading(false);
     };
 

@@ -2,8 +2,7 @@ import React from 'react';
 import { Post } from '../../../types/post';
 import { PostType } from '../../../types/postType';
 import { PostList } from './PostList';
-import { useSavedPosts } from '../../../hooks/useSavedPosts';
-import { isWithinInterval } from 'date-fns';
+import { usePosts } from '../../../hooks/usePosts';
 
 interface PostsGridProps {
   handle: string;
@@ -18,27 +17,12 @@ export const PostsGrid: React.FC<PostsGridProps> = ({
   startDate,
   endDate
 }) => {
-  const { posts, isLoading } = useSavedPosts(handle, postType);
-
-  // Filter posts by date range
-  const filteredPosts = React.useMemo(() => {
-    if (!posts) return [];
-    
-    let filtered = [...posts];
-
-    // Apply date filtering if both dates are provided
-    if (startDate && endDate) {
-      filtered = filtered.filter(post => {
-        const postDate = new Date(post.createdAt);
-        return isWithinInterval(postDate, { start: startDate, end: endDate });
-      });
-    }
-    
-    // Sort by most recent first
-    return filtered.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  }, [posts, startDate, endDate]);
+  const { posts, isLoading } = usePosts({
+    handle,
+    postType,
+    startDate,
+    endDate
+  });
 
   if (isLoading) {
     return (
@@ -50,5 +34,5 @@ export const PostsGrid: React.FC<PostsGridProps> = ({
     );
   }
 
-  return <PostList posts={filteredPosts} />;
+  return <PostList posts={posts} />;
 };

@@ -1,9 +1,11 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { AnalyticsTab } from '../analytics/AnalyticsTab';
 import { PostsTab } from '../posts/PostsTab';
 import { InsightsTab } from '../insights/InsightsTab';
-import { useTimeRange } from '../context/TimeRangeContext';
+import { ChatTab } from '../chat/ChatTab';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface TabContentProps {
   activeTab: string;
@@ -22,7 +24,13 @@ export const TabContent: React.FC<TabContentProps> = ({
   onDateChange,
   analytics
 }) => {
-  const { timeRange } = useTimeRange();
+  const { isAuthenticated } = useAuth();
+
+  // If user is not authenticated and tries to access protected tabs,
+  // redirect to analytics tab
+  if (!isAuthenticated && (activeTab === 'posts' || activeTab === 'insights' || activeTab === 'chat')) {
+    return <Navigate to={`/profile/${handle}?tab=analytics`} replace />;
+  }
 
   switch (activeTab) {
     case 'analytics':
@@ -46,6 +54,8 @@ export const TabContent: React.FC<TabContentProps> = ({
           analytics={analytics}
         />
       );
+    case 'chat':
+      return <ChatTab handle={handle} />;
     default:
       return null;
   }

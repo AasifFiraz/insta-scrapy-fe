@@ -1,31 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Check } from 'lucide-react';
 
 interface MobileStructurePopupProps {
-  text: string;
+  isOpen: boolean;
   onClose: () => void;
+  title: string;
+  content: string;
+  onCopy: () => void;
+  copied: boolean;
 }
 
-export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({ text, onClose }) => {
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (copied) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [copied, onClose]);
-
-  const handleClick = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-    } catch (err) {
-      console.error('Failed to copy text:', err);
-    }
-  };
+export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({ 
+  isOpen,
+  onClose,
+  title,
+  content,
+  onCopy,
+  copied
+}) => {
+  if (!isOpen) return null;
 
   return (
     <>
@@ -36,21 +29,27 @@ export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({ text
       />
       
       {/* Bottom Sheet */}
-      <div 
-        className="fixed inset-x-0 bottom-0 bg-black border-t border-white/10 rounded-t-xl p-4 z-50 max-h-[80vh] overflow-y-auto"
-        onClick={handleClick}
-      >
-        {copied ? (
-          <div className="flex items-center justify-center gap-2 text-emerald-500 py-8">
-            <Check className="w-5 h-5" />
-            <span>Copied to clipboard!</span>
-          </div>
-        ) : (
-          <>
-            <p className="text-gray-400 text-sm text-center mb-4">Tap anywhere to copy</p>
-            <div className="text-white whitespace-pre-wrap">{text}</div>
-          </>
-        )}
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-black border border-white/10 rounded-xl p-4 z-50 max-h-[80vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <button
+            onClick={onCopy}
+            className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+          >
+            {copied ? (
+              <div className="flex items-center gap-2 text-emerald-500">
+                <Check className="w-4 h-4" />
+                <span className="text-sm">Copied!</span>
+              </div>
+            ) : (
+              <span className="text-sm">Copy</span>
+            )}
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="text-white whitespace-pre-wrap">{content}</div>
       </div>
     </>
   );

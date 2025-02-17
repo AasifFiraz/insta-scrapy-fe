@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTimeRange } from '../components/profile/context/TimeRangeContext';
+import axiosInstance from '../utils/axios';
 
 interface ProfileData {
   username: string;
@@ -64,8 +65,6 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
   const [engagementData, setEngagementData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const baseURL = process.env.NODE_ENV === "production" ? "https://postlyze.com/" : "http://localhost:5000/";
   
   // Use refs to track if the requests are in progress
   const profileRequestInProgress = useRef(false);
@@ -92,15 +91,10 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
         // Profile info fetch
         if (!profileRequestInProgress.current) {
           profileRequestInProgress.current = true;
-          const profileResponse = await fetch(`${baseURL}api/profile/${handle}`);
+          const profileResponse = await axiosInstance.get(`/profile/${handle}`);
           
-          if (!profileResponse.ok) {
-            throw new Error(`Profile fetch failed: ${profileResponse.statusText}`);
-          }
-          
-          const profileInfo = await profileResponse.json();
           if (isMounted.current) {
-            setProfileData(profileInfo);
+            setProfileData(profileResponse.data);
           }
         }
 
@@ -108,29 +102,22 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
         if (!growthRequestInProgress.current) {
           growthRequestInProgress.current = true;
           const days = timeRange === '7D' ? 7 : timeRange === '28D' ? 28 : 90;
-          const growthResponse = await fetch(`${baseURL}api/profile/${handle}/growth?days=${days}`);
+          const growthResponse = await axiosInstance.get(`/profile/${handle}/growth`, {
+            params: { days }
+          });
           
-          if (!growthResponse.ok) {
-            throw new Error(`Growth data fetch failed: ${growthResponse.statusText}`);
-          }
-          const growthInfo = await growthResponse.json();
-          
-          if (isMounted.current && Array.isArray(growthInfo)) {
-            setGrowthData(growthInfo);
+          if (isMounted.current && Array.isArray(growthResponse.data)) {
+            setGrowthData(growthResponse.data);
           }
         }
 
         // Stats fetch
         if (!statsRequestInProgress.current) {
           statsRequestInProgress.current = true;
-          const statsResponse = await fetch(`${baseURL}api/profile/${handle}/stats`);
-          if (!statsResponse.ok) {
-            throw new Error(`Stats fetch failed: ${statsResponse.statusText}`);
-          }
-          const statsInfo = await statsResponse.json();
+          const statsResponse = await axiosInstance.get(`/profile/${handle}/stats`);
           
           if (isMounted.current) {
-            setEngagementData(statsInfo);
+            setEngagementData(statsResponse.data);
           }
         }
 
@@ -159,7 +146,7 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
       growthRequestInProgress.current = false;
       statsRequestInProgress.current = false;
     };
-  }, [handle, timeRange, baseURL]);
+  }, [handle, timeRange]);
 
   // Add debug logging for state changes
   useEffect(() => {

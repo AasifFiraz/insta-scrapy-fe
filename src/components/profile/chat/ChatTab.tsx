@@ -5,7 +5,7 @@ interface ChatTabProps {
   handle: string;
 }
 
-export const ChatTab: React.FC<ChatTabProps> = ({ handle }) => {
+export const ChatTab: React.FC<ChatTabProps> = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] text-gray-400">
       <Bot className="w-12 h-12 mb-4" />

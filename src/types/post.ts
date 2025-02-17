@@ -10,6 +10,15 @@ export interface Post {
     comments: number;
   };
   createdAt: string;
+  topic: string;
+  goal: string;
+  angle: string;
+  copy: {
+    post: string;
+    caption: string;
+    postStructure: string;
+    captionStructure: string;
+  };
 }
 
 export interface PostsResponse {

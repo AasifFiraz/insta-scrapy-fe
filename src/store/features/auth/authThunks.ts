@@ -43,14 +43,11 @@ interface TokenResponse {
 
 let isRefreshing = false;
 
-const URL = process.env.NODE_ENV === "production" ? "https://postlyze.com" : "http://localhost:5000";
-
-
 export const signup = createAsyncThunk(
   'auth/signup',
   async (credentials: SignupCredentials, { dispatch, rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post<AuthResponse>(`${URL}/api/signup`, credentials);
+      const response = await axiosInstance.post<AuthResponse>('/signup', credentials);
       
       // Store tokens
       localStorage.setItem('accessToken', response.data.access_token);
@@ -73,7 +70,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { dispatch, rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post<AuthResponse>(`${URL}/api/login`, credentials);
+      const response = await axiosInstance.post<AuthResponse>('/login', credentials);
       
       // Store tokens
       localStorage.setItem('accessToken', response.data.access_token);
@@ -108,7 +105,7 @@ export const checkAuth = createAsyncThunk(
       isRefreshing = true;
       console.log('Refreshing token...');
       const response = await axiosInstance.post<TokenResponse>(
-        `${URL}/api/refresh-token`,
+        '/refresh-token',
         { refresh_token }
       );
       

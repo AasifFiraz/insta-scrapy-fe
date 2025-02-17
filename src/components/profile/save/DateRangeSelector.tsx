@@ -42,7 +42,7 @@ export const DateRangeSelector: React.FC<DateRangeProps> = ({
           <div className="flex items-center justify-center gap-2">
             <Calendar className="w-4 h-4" />
             <span className="text-sm">
-              {startDate && endDate ? 'Custom' : 'All Time'}
+              {startDate && endDate ? 'Custom' : 'Last 7 days'}
             </span>
           </div>
         </button>
@@ -68,7 +68,7 @@ export const DateRangeSelector: React.FC<DateRangeProps> = ({
               </div>
             </span>
           ) : (
-            'All Time'
+            'Last 7 days'
           )}
         </span>
       </div>

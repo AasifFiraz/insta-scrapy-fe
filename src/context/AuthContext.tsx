@@ -15,7 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   login: (userData: User, accessToken: string, refreshToken: string) => void;
-  logout: () => void;
+  logout: (shouldRedirect?: boolean) => void;
   refreshTokens: () => Promise<string | null>;
 }
 
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return access_token;
     } catch (error) {
       console.error('Error refreshing token:', error);
-      logout();
+      logout(false);
       return null;
     }
   };
@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error fetching user data:', error);
-      logout();
+      logout(false);
     }
   };
 
@@ -77,7 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const refreshToken = localStorage.getItem('refreshToken');
 
         if (!accessToken || !refreshToken) {
-          throw new Error('No tokens found');
+          setLoading(false);
+          return;
         }
 
         // Check if access token is expired
@@ -100,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        logout();
+        logout(false);
       } finally {
         setLoading(false);
       }
@@ -118,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
+  const logout = (shouldRedirect: boolean = true) => {
     localStorage.removeItem('user');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -126,7 +127,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setIsAuthenticated(false);
     
-    navigate('/');
+    if (shouldRedirect) {
+      navigate('/');
+    }
   };
 
   if (loading) {

@@ -1,29 +1,36 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { User, Grid, Lightbulb } from 'lucide-react';
+import { User, Grid, Lightbulb, Lock, MessageCircle } from 'lucide-react';
 import { TimeRangeFilter } from '../filters/TimeRangeFilter';
 import { useTimeRange } from '../context/TimeRangeContext';
 import { DateRangeSelector } from '../save/DateRangeSelector';
 import { ProBadge } from '../../common/ProBadge';
 import { MobileFiltersBar } from '../filters/MobileFiltersBar';
+import { useAuth } from '../../../hooks/useAuth';
 
-const TABS = [
+interface TabConfig {
+  id: 'analytics' | 'posts' | 'insights' | 'chat';
+  label: string;
+  icon: React.FC<{ className?: string }>;
+  isPro?: boolean;
+}
+
+const TABS: readonly TabConfig[] = [
   { id: 'analytics', label: 'Profile', icon: User },
   { id: 'posts', label: 'Posts', icon: Grid, isPro: true },
-  { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true }
+  { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true },
+  { id: 'chat', label: 'Chat', icon: MessageCircle, isPro: true }
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
 
 interface ProfileTabsProps {
-  handle: string;
   startDate?: Date | null;
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
 }
 
 export const ProfileTabs: React.FC<ProfileTabsProps> = ({
-  handle,
   startDate,
   endDate,
   onDateChange
@@ -31,8 +38,13 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabId) || 'analytics';
   const { timeRange, setTimeRange } = useTimeRange();
+  const { isAuthenticated } = useAuth();
 
   const handleTabClick = (tabId: TabId) => {
+    // Only allow switching to posts/insights/chat if authenticated
+    if (!isAuthenticated && (tabId === 'posts' || tabId === 'insights' || tabId === 'chat')) {
+      return;
+    }
     setSearchParams({ tab: tabId });
   };
 
@@ -47,25 +59,35 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
       <div className="sm:hidden space-y-4">
         {/* Tab buttons */}
         <div className="flex gap-2 bg-white/5 rounded-lg p-1">
-          {TABS.map(({ id, label, icon: Icon, isPro }) => (
-            <button
-              key={id}
-              onClick={() => handleTabClick(id)}
-              className={`flex-1 p-2 rounded-md transition-colors ${
-                activeTab === id
-                  ? 'bg-white/10 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-              title={label}
-            >
-              <div className="relative inline-flex flex-col items-center">
-                <Icon className="w-4 h-4" />
-                {isPro && (
-                  <ProBadge className="absolute -top-1 -right-6" />
-                )}
-              </div>
-            </button>
-          ))}
+          {TABS.map(({ id, label, icon: Icon, isPro }) => {
+            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights' || id === 'chat');
+            return (
+              <button
+                key={id}
+                onClick={() => handleTabClick(id)}
+                disabled={isDisabled}
+                className={`flex-1 p-2 rounded-md transition-colors ${
+                  activeTab === id
+                    ? 'bg-white/10 text-white'
+                    : isDisabled
+                    ? 'text-gray-600 cursor-not-allowed'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title={isDisabled ? 'Sign in to access this feature' : label}
+              >
+                <div className="relative inline-flex flex-col items-center">
+                  {isDisabled ? (
+                    <Lock className="w-4 h-4" />
+                  ) : (
+                    <Icon className="w-4 h-4" />
+                  )}
+                  {isPro && (
+                    <ProBadge className="absolute -top-1 -right-6" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
 
         {/* Mobile Filters Bar */}
@@ -82,21 +104,34 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
       {/* Desktop Tabs */}
       <div className="hidden sm:flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {TABS.map(({ id, label, icon: Icon, isPro }) => (
-            <button
-              key={id}
-              onClick={() => handleTabClick(id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                activeTab === id
-                  ? 'bg-white/10 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
-              {isPro && <ProBadge />}
-            </button>
-          ))}
+          {TABS.map(({ id, label, icon: Icon, isPro }) => {
+            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights' || id === 'chat');
+            return (
+              <button
+                key={id}
+                onClick={() => handleTabClick(id)}
+                disabled={isDisabled}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  activeTab === id
+                    ? 'bg-white/10 text-white'
+                    : isDisabled
+                    ? 'text-gray-600 cursor-not-allowed'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+                title={isDisabled ? 'Sign in to access this feature' : undefined}
+              >
+                {isDisabled ? (
+                  <Lock className="w-4 h-4" />
+                ) : (
+                  <Icon className="w-4 h-4" />
+                )}
+                <span>{label}</span>
+                {isPro && (
+                  <ProBadge />
+                )}
+              </button>
+            );
+          })}
         </div>
         
         {/* Desktop Filters */}
@@ -107,7 +142,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
               onChange={setTimeRange}
             />
           )}
-          {showDateRange && onDateChange && (
+          {showDateRange && onDateChange && isAuthenticated && (
             <DateRangeSelector
               startDate={startDate}
               endDate={endDate}

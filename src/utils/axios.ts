@@ -3,8 +3,10 @@ import { store } from '../store/store';
 import { logout } from '../store/features/auth/authSlice';
 import { clearProfile } from '../store/features/user/userSlice';
 
+const BASE_URL = process.env.NODE_ENV === "production" ? "https://postlyze.com/api" : "http://localhost:5000/api";
+
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api'
+  baseURL: BASE_URL
 });
 
 // Create a flag to prevent multiple refresh token requests
@@ -120,4 +122,6 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// Export BASE_URL for reference if needed
+export { BASE_URL };
 export default axiosInstance; 

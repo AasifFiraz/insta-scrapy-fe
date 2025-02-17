@@ -1,26 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Post } from '../../../types/post';
 import { formatNumber } from '../../../utils/numberFormat';
 import { formatDistanceToNow } from '../../../utils/dateFormat';
-import { FileText, AlignLeft, Copy, Check, FileCode, MessageSquare } from 'lucide-react';
+import { FileText, AlignLeft, FileCode, MessageSquare } from 'lucide-react';
 import { MobileStructurePopup } from '../../common/MobileStructurePopup';
-import { useState } from 'react';
-import { getPostStructure, getCaptionStructure, getPostCopy, getCaptionCopy } from '../../../utils/postTemplates';
 
 interface PostListProps {
   posts: Post[];
 }
 
-interface PopupContent {
+type PopupContent = {
   type: 'post' | 'caption' | 'postStructure' | 'captionStructure';
   text: string;
   postType: string;
   title: string;
+  copy?: {
+    post: string;
+    caption: string;
+    postStructure: string;
+    captionStructure: string;
+  };
 }
 
 export const PostList: React.FC<PostListProps> = ({ posts }) => {
   const [selectedContent, setSelectedContent] = useState<PopupContent | null>(null);
-  const [mobilePopupText, setMobilePopupText] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -35,30 +38,30 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
     }
   };
 
-  const showContent = (type: PopupContent['type'], postType: string) => {
+  const showContent = (type: PopupContent['type'], post: Post) => {
     let text = '';
     let title = '';
 
     switch (type) {
       case 'post':
-        text = getPostCopy(postType);
+        text = post.copy.post;
         title = 'Post Copy';
         break;
       case 'caption':
-        text = getCaptionCopy(postType);
+        text = post.copy.caption;
         title = 'Caption Copy';
         break;
       case 'postStructure':
-        text = getPostStructure(postType);
+        text = post.copy.postStructure;
         title = 'Post Structure';
         break;
       case 'captionStructure':
-        text = getCaptionStructure(postType);
+        text = post.copy.captionStructure;
         title = 'Caption Structure';
         break;
     }
     
-    setSelectedContent({ type, text, postType, title });
+    setSelectedContent({ type, text, postType: post.type, title });
   };
 
   return (
@@ -68,7 +71,7 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
         <table className="w-full text-left">
           <thead>
             <tr className="text-gray-400 text-sm border-b border-white/10">
-              <th className="pb-3 font-medium">Title</th>
+              <th className="pb-3 font-medium w-[300px]">Title</th>
               <th className="pb-3 font-medium">Posted</th>
               <th className="pb-3 font-medium">Topic</th>
               <th className="pb-3 font-medium">Goal</th>
@@ -95,13 +98,13 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
                   {formatDistanceToNow(new Date(post.createdAt))}
                 </td>
                 <td className="py-4 text-gray-300">
-                  Business Growth
+                  {post.topic || '-'}
                 </td>
                 <td className="py-4 text-gray-300">
-                  Engagement
+                  {post.goal || '-'}
                 </td>
                 <td className="py-4 text-gray-300">
-                  How-to
+                  {post.angle || '-'}
                 </td>
                 <td className="py-4 text-center text-gray-300">
                   {formatNumber(post.stats.likes)}
@@ -112,28 +115,28 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
                 <td className="py-4 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <button
-                      onClick={() => showContent('post', post.type)}
+                      onClick={() => showContent('post', post)}
                       className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
                       title="Post Copy"
                     >
                       <FileCode className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => showContent('caption', post.type)}
+                      onClick={() => showContent('caption', post)}
                       className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
                       title="Caption Copy"
                     >
                       <MessageSquare className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => showContent('postStructure', post.type)}
+                      onClick={() => showContent('postStructure', post)}
                       className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
                       title="Post Structure"
                     >
                       <FileText className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => showContent('captionStructure', post.type)}
+                      onClick={() => showContent('captionStructure', post)}
                       className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
                       title="Caption Structure"
                     >
@@ -148,107 +151,82 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
       </div>
 
       {/* Mobile list */}
-      <div className="md:hidden space-y-2">
+      <div className="md:hidden space-y-4">
         {posts.map(post => (
           <div key={post.id} className="bg-white/5 rounded-lg p-3">
-            <div className="flex items-center gap-3">
-              <img 
-                src={post.thumbnail} 
+            <div className="flex gap-3">
+              <img
+                src={post.thumbnail}
                 alt={post.caption}
-                className="w-16 h-16 rounded object-cover shrink-0"
+                className="w-20 h-20 rounded object-cover shrink-0"
               />
-              <div className="min-w-0 flex-1">
-                <p className="text-white text-sm line-clamp-2 mb-1">{post.caption}</p>
-                <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <span>{formatNumber(post.stats.likes)} likes</span>
-                  <span>•</span>
-                  <span>{formatNumber(post.stats.comments)} comments</span>
-                  <span>•</span>
-                  <span>{formatDistanceToNow(new Date(post.createdAt))}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm line-clamp-2 mb-2">
+                  {post.caption}
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-3 text-gray-400 text-xs">
+                    <span>{formatNumber(post.stats.likes)} likes</span>
+                    <span>{formatNumber(post.stats.comments)} comments</span>
+                  </div>
+                  <span className="text-gray-400 text-xs">
+                    {formatDistanceToNow(new Date(post.createdAt))}
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-400">
+                  {post.topic && <span>Topic: {post.topic}</span>}
+                  {post.goal && <span>Goal: {post.goal}</span>}
+                  {post.angle && <span>Angle: {post.angle}</span>}
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    onClick={() => showContent('post', post)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                    title="Post Copy"
+                  >
+                    <FileCode className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => showContent('caption', post)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                    title="Caption Copy"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => showContent('postStructure', post)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                    title="Post Structure"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => showContent('captionStructure', post)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                    title="Caption Structure"
+                  >
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            </div>
-
-            {/* Metadata grid */}
-            <div className="mt-2 grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
-              <div className="text-gray-400">Topic:</div>
-              <div className="text-gray-400">Angle:</div>
-              <div className="text-gray-400">Goal:</div>
-              <div className="text-white">Business Growth</div>
-              <div className="text-white">How-to</div>
-              <div className="text-white">Engagement</div>
-            </div>
-
-            {/* Structure buttons */}
-            <div className="mt-2 flex gap-2">
-              <button
-                onClick={() => setMobilePopupText(getPostStructure(post.type))}
-                className="flex-1 flex items-center justify-center gap-1 text-xs bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-2 py-1.5 rounded transition-colors"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>Post Structure</span>
-              </button>
-              <button
-                onClick={() => setMobilePopupText(getCaptionStructure(post.type))}
-                className="flex-1 flex items-center justify-center gap-1 text-xs bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-2 py-1.5 rounded transition-colors"
-              >
-                <AlignLeft className="w-3.5 h-3.5" />
-                <span>Caption Structure</span>
-              </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Content Popup */}
+      {/* Content popup */}
       {selectedContent && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-            onClick={() => setSelectedContent(null)}
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedContent(null)} />
+          <MobileStructurePopup
+            isOpen={!!selectedContent}
+            onClose={() => setSelectedContent(null)}
+            title={selectedContent.title}
+            content={selectedContent.text}
+            onCopy={handleCopy}
+            copied={copied}
           />
-          
-          {/* Centered Popup */}
-          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
-            <div className="relative bg-black border border-white/10 rounded-lg shadow-xl p-6 w-[800px] max-w-[90vw] max-h-[80vh] overflow-y-auto">
-              {/* Magical outline/glow effect */}
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 blur-xl -z-10" />
-              <div className="absolute inset-0 rounded-lg border border-white/20 shadow-[0_0_15px_rgba(236,72,153,0.1)] -z-10" />
-              
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">
-                  {selectedContent.title}
-                </h3>
-                <button
-                  onClick={handleCopy}
-                  className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-                  title={copied ? 'Copied!' : 'Copy to clipboard'}
-                >
-                  {copied ? (
-                    <Check className="w-4 h-4 text-emerald-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-              
-              {/* Content */}
-              <div className="text-white whitespace-pre-wrap text-base leading-relaxed">
-                {selectedContent.text}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Mobile Structure Popup */}
-      {mobilePopupText && (
-        <MobileStructurePopup 
-          text={mobilePopupText}
-          onClose={() => setMobilePopupText(null)}
-        />
+        </div>
       )}
     </>
   );
