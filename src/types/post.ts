@@ -19,6 +19,27 @@ export interface Post {
     postStructure: string;
     captionStructure: string;
   };
+  context: {
+    user: {
+      full_name: string;
+      username: string;
+      is_verified: boolean;
+    };
+    engagement: {
+      likes_count: number;
+      comments_count: number;
+    };
+    tagged_users: Array<{
+      full_name: string;
+      username: string;
+      is_verified: boolean;
+    }>;
+    coauthors: Array<{
+      full_name: string;
+      username: string;
+      is_verified: boolean;
+    }>;
+  };
 }
 
 export interface PostsResponse {

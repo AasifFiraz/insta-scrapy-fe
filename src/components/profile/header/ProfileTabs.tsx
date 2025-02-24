@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { User, Grid, Lightbulb, Lock, MessageCircle } from 'lucide-react';
+import { User, Grid, Lightbulb, Lock } from 'lucide-react';
 import { TimeRangeFilter } from '../filters/TimeRangeFilter';
 import { useTimeRange } from '../context/TimeRangeContext';
 import { DateRangeSelector } from '../save/DateRangeSelector';
@@ -9,7 +9,7 @@ import { MobileFiltersBar } from '../filters/MobileFiltersBar';
 import { useAuth } from '../../../hooks/useAuth';
 
 interface TabConfig {
-  id: 'analytics' | 'posts' | 'insights' | 'chat';
+  id: 'analytics' | 'posts' | 'insights';
   label: string;
   icon: React.FC<{ className?: string }>;
   isPro?: boolean;
@@ -18,8 +18,7 @@ interface TabConfig {
 const TABS: readonly TabConfig[] = [
   { id: 'analytics', label: 'Profile', icon: User },
   { id: 'posts', label: 'Posts', icon: Grid, isPro: true },
-  { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true },
-  { id: 'chat', label: 'Chat', icon: MessageCircle, isPro: true }
+  { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true }
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -41,8 +40,8 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
   const { isAuthenticated } = useAuth();
 
   const handleTabClick = (tabId: TabId) => {
-    // Only allow switching to posts/insights/chat if authenticated
-    if (!isAuthenticated && (tabId === 'posts' || tabId === 'insights' || tabId === 'chat')) {
+    // Only allow switching to posts/insights if authenticated
+    if (!isAuthenticated && (tabId === 'posts' || tabId === 'insights')) {
       return;
     }
     setSearchParams({ tab: tabId });
@@ -60,7 +59,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
         {/* Tab buttons */}
         <div className="flex gap-2 bg-white/5 rounded-lg p-1">
           {TABS.map(({ id, label, icon: Icon, isPro }) => {
-            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights' || id === 'chat');
+            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights');
             return (
               <button
                 key={id}
@@ -105,7 +104,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
       <div className="hidden sm:flex items-center justify-between">
         <div className="flex items-center gap-2">
           {TABS.map(({ id, label, icon: Icon, isPro }) => {
-            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights' || id === 'chat');
+            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights');
             return (
               <button
                 key={id}

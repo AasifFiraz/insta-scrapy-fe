@@ -5,11 +5,13 @@ import { PostType } from '../../../types/postType';
 interface PostTypeFilterProps {
   selectedType: PostType | 'all';
   onChange: (type: PostType | 'all') => void;
+  isLoading?: boolean;
 }
 
 export const PostTypeFilter: React.FC<PostTypeFilterProps> = ({
   selectedType,
-  onChange
+  onChange,
+  isLoading = false
 }) => {
   return (
     <div className="flex gap-2 bg-white/5 rounded-lg p-1">
@@ -18,9 +20,10 @@ export const PostTypeFilter: React.FC<PostTypeFilterProps> = ({
         className={`p-2 rounded-md transition-colors ${
           selectedType === 'all'
             ? 'bg-white/10 text-white'
-            : 'text-gray-400 hover:text-white'
-        }`}
+            : 'text-gray-400'
+        } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
         title="All Posts"
+        disabled={isLoading}
       >
         <LayoutGrid className="w-4 h-4" />
       </button>
@@ -29,9 +32,10 @@ export const PostTypeFilter: React.FC<PostTypeFilterProps> = ({
         className={`p-2 rounded-md transition-colors ${
           selectedType === 'image'
             ? 'bg-white/10 text-white'
-            : 'text-gray-400 hover:text-white'
-        }`}
+            : 'text-gray-400'
+        } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
         title="Images"
+        disabled={isLoading}
       >
         <Image className="w-4 h-4" />
       </button>
@@ -40,9 +44,10 @@ export const PostTypeFilter: React.FC<PostTypeFilterProps> = ({
         className={`p-2 rounded-md transition-colors ${
           selectedType === 'carousel'
             ? 'bg-white/10 text-white'
-            : 'text-gray-400 hover:text-white'
-        }`}
+            : 'text-gray-400'
+        } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
         title="Carousels"
+        disabled={isLoading}
       >
         <Images className="w-4 h-4" />
       </button>
@@ -51,9 +56,10 @@ export const PostTypeFilter: React.FC<PostTypeFilterProps> = ({
         className={`p-2 rounded-md transition-colors ${
           selectedType === 'reel'
             ? 'bg-white/10 text-white'
-            : 'text-gray-400 hover:text-white'
-        }`}
+            : 'text-gray-400'
+        } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
         title="Reels"
+        disabled={isLoading}
       >
         <Film className="w-4 h-4" />
       </button>

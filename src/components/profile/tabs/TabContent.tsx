@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { AnalyticsTab } from '../analytics/AnalyticsTab';
 import { PostsTab } from '../posts/PostsTab';
 import { InsightsTab } from '../insights/InsightsTab';
-import { ChatTab } from '../chat/ChatTab';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { useAuth } from '../../../hooks/useAuth';
 
@@ -28,7 +27,7 @@ export const TabContent: React.FC<TabContentProps> = ({
 
   // If user is not authenticated and tries to access protected tabs,
   // redirect to analytics tab
-  if (!isAuthenticated && (activeTab === 'posts' || activeTab === 'insights' || activeTab === 'chat')) {
+  if (!isAuthenticated && (activeTab === 'posts' || activeTab === 'insights')) {
     return <Navigate to={`/profile/${handle}?tab=analytics`} replace />;
   }
 
@@ -54,8 +53,6 @@ export const TabContent: React.FC<TabContentProps> = ({
           analytics={analytics}
         />
       );
-    case 'chat':
-      return <ChatTab handle={handle} />;
     default:
       return null;
   }

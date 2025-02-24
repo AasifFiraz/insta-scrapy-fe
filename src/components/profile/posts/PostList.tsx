@@ -4,9 +4,15 @@ import { formatNumber } from '../../../utils/numberFormat';
 import { formatDistanceToNow } from '../../../utils/dateFormat';
 import { FileText, AlignLeft, FileCode, MessageSquare } from 'lucide-react';
 import { MobileStructurePopup } from '../../common/MobileStructurePopup';
+import { generateCaptionStructure } from '../../../services/postsService';
+import { EmptyState } from './EmptyState';
+import { PostType } from '../../../types/postType';
 
 interface PostListProps {
   posts: Post[];
+  postType?: PostType | 'all';
+  startDate?: Date | null;
+  endDate?: Date | null;
 }
 
 type PopupContent = {
@@ -14,17 +20,27 @@ type PopupContent = {
   text: string;
   postType: string;
   title: string;
-  copy?: {
-    post: string;
-    caption: string;
-    postStructure: string;
-    captionStructure: string;
-  };
+  isLoading?: boolean;
 }
 
-export const PostList: React.FC<PostListProps> = ({ posts }) => {
+export const PostList: React.FC<PostListProps> = ({ 
+  posts, 
+  postType = 'all',
+  startDate,
+  endDate
+}) => {
   const [selectedContent, setSelectedContent] = useState<PopupContent | null>(null);
   const [copied, setCopied] = useState(false);
+
+  if (posts.length === 0) {
+    return (
+      <EmptyState 
+        postType={postType}
+        startDate={startDate}
+        endDate={endDate}
+      />
+    );
+  }
 
   const handleCopy = async () => {
     if (!selectedContent) return;
@@ -38,7 +54,7 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
     }
   };
 
-  const showContent = (type: PopupContent['type'], post: Post) => {
+  const showContent = async (type: PopupContent['type'], post: Post) => {
     let text = '';
     let title = '';
 
@@ -56,9 +72,42 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
         title = 'Post Structure';
         break;
       case 'captionStructure':
-        text = post.copy.captionStructure;
-        title = 'Caption Structure';
-        break;
+        // Show loading state immediately
+        setSelectedContent({
+          type,
+          text: '',
+          postType: post.type,
+          title: 'Caption Structure',
+          isLoading: true
+        });
+
+        try {
+          // Generate caption structure
+          const structuredCaption = await generateCaptionStructure(
+            post.copy.caption,
+            post.context
+          );
+          
+          // Update with generated content
+          setSelectedContent({
+            type,
+            text: structuredCaption,
+            postType: post.type,
+            title: 'Caption Structure',
+            isLoading: false
+          });
+          return;
+        } catch (error) {
+          console.error('Error generating caption structure:', error);
+          setSelectedContent({
+            type,
+            text: 'Failed to generate caption structure. Please try again.',
+            postType: post.type,
+            title: 'Caption Structure',
+            isLoading: false
+          });
+          return;
+        }
     }
     
     setSelectedContent({ type, text, postType: post.type, title });
@@ -222,9 +271,10 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
             isOpen={!!selectedContent}
             onClose={() => setSelectedContent(null)}
             title={selectedContent.title}
-            content={selectedContent.text}
+            content={selectedContent.isLoading ? 'Generating caption structure...' : selectedContent.text}
             onCopy={handleCopy}
             copied={copied}
+            isLoading={selectedContent.isLoading}
           />
         </div>
       )}

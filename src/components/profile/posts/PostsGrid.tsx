@@ -1,29 +1,23 @@
 import React from 'react';
-import { Post } from '../../../types/post';
 import { PostType } from '../../../types/postType';
 import { PostList } from './PostList';
-import { usePosts } from '../../../hooks/usePosts';
+import { Post } from '../../../types/post';
 
 interface PostsGridProps {
-  handle: string;
   postType: PostType | 'all';
   startDate?: Date | null;
   endDate?: Date | null;
+  posts: Post[];
+  isLoading: boolean;
 }
 
 export const PostsGrid: React.FC<PostsGridProps> = ({ 
-  handle, 
   postType,
   startDate,
-  endDate
+  endDate,
+  posts,
+  isLoading
 }) => {
-  const { posts, isLoading } = usePosts({
-    handle,
-    postType,
-    startDate,
-    endDate
-  });
-
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -34,5 +28,12 @@ export const PostsGrid: React.FC<PostsGridProps> = ({
     );
   }
 
-  return <PostList posts={posts} />;
+  return (
+    <PostList 
+      posts={posts} 
+      postType={postType}
+      startDate={startDate}
+      endDate={endDate}
+    />
+  );
 };

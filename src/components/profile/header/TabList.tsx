@@ -6,7 +6,7 @@ import { useTimeRange } from '../context/TimeRangeContext';
 import { ProBadge } from '../../common/ProBadge';
 
 const TABS = [
-  { id: 'analytics', label: 'Profile', icon: User },
+  { id: 'analytics', label: 'Profile', icon: User, isPro: false },
   { id: 'posts', label: 'Posts', icon: Grid, isPro: true },
   { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true },
   { id: 'chat', label: 'Chat', icon: MessageCircle, isPro: true }
@@ -18,7 +18,7 @@ interface TabListProps {
   handle: string;
 }
 
-export const TabList: React.FC<TabListProps> = ({ handle }) => {
+export const TabList: React.FC<TabListProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabId) || 'analytics';
   const { timeRange, setTimeRange } = useTimeRange();

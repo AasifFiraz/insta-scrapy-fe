@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { User, Grid, Lightbulb, MessageCircle } from 'lucide-react';
+import { User, Grid, Lightbulb } from 'lucide-react';
 import { TimeRangeFilter } from '../filters/TimeRangeFilter';
 import { useTimeRange } from '../context/TimeRangeContext';
 import { SaveProfileButton } from '../../common/SaveProfileButton';
@@ -10,8 +10,7 @@ import { ProBadge } from '../../common/ProBadge';
 const TABS = [
   { id: 'analytics', label: 'Profile', icon: User },
   { id: 'posts', label: 'Posts', icon: Grid, isPro: true },
-  { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true },
-  { id: 'chat', label: 'Chat', icon: MessageCircle, isPro: true }
+  { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true }
 ] as const;
 
 type TabId = typeof TABS[number]['id'];

@@ -13,6 +13,8 @@ import { SwipefilePage } from './components/swipefile/SwipefilePage';
 import { EditorPage } from './components/editor/EditorPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignupPage } from './components/auth/SignupPage';
+import { ForgotPassword } from './components/auth/ForgotPassword';
+import { UnauthenticatedRoute } from './components/auth/UnauthenticatedRoute';
 
 export const App: React.FC = () => {
   return (
@@ -29,8 +31,30 @@ export const App: React.FC = () => {
                   <Route path="/profile/:handle" element={<ProfileDashboard />} />
                   <Route path="/swipefile" element={<SwipefilePage />} />
                   <Route path="/editor" element={<EditorPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/signup" element={<SignupPage />} />
+                  <Route 
+                    path="/login" 
+                    element={
+                      <UnauthenticatedRoute>
+                        <LoginPage />
+                      </UnauthenticatedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/signup" 
+                    element={
+                      <UnauthenticatedRoute>
+                        <SignupPage />
+                      </UnauthenticatedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/forgot-password" 
+                    element={
+                      <UnauthenticatedRoute>
+                        <ForgotPassword />
+                      </UnauthenticatedRoute>
+                    } 
+                  />
                 </Routes>
               </div>
             </SwipefileProvider>

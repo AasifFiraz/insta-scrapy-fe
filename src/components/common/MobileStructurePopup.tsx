@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 
 interface MobileStructurePopupProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface MobileStructurePopupProps {
   content: string;
   onCopy: () => void;
   copied: boolean;
+  isLoading?: boolean;
 }
 
 export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({ 
@@ -16,7 +17,8 @@ export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({
   title,
   content,
   onCopy,
-  copied
+  copied,
+  isLoading = false
 }) => {
   if (!isOpen) return null;
 
@@ -33,23 +35,33 @@ export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          <button
-            onClick={onCopy}
-            className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-          >
-            {copied ? (
-              <div className="flex items-center gap-2 text-emerald-500">
-                <Check className="w-4 h-4" />
-                <span className="text-sm">Copied!</span>
-              </div>
-            ) : (
-              <span className="text-sm">Copy</span>
-            )}
-          </button>
+          {!isLoading && (
+            <button
+              onClick={onCopy}
+              className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+            >
+              {copied ? (
+                <div className="flex items-center gap-2 text-emerald-500">
+                  <Check className="w-4 h-4" />
+                  <span className="text-sm">Copied!</span>
+                </div>
+              ) : (
+                <span className="text-sm">Copy</span>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Content */}
-        <div className="text-white whitespace-pre-wrap">{content}</div>
+        <div className="text-white whitespace-pre-wrap">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            content
+          )}
+        </div>
       </div>
     </>
   );

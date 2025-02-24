@@ -3,6 +3,7 @@ import { Image, Images, Film, LayoutGrid } from 'lucide-react';
 import { PostType } from '../../../types/postType';
 import { PostsGrid } from './PostsGrid';
 import { DateRangeSelector } from '../save/DateRangeSelector';
+import { usePosts } from '../../../hooks/usePosts';
 
 interface PostsTabProps {
   handle: string;
@@ -18,6 +19,7 @@ export const PostsTab: React.FC<PostsTabProps> = ({
   onDateChange
 }) => {
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
+  const { posts, isLoading } = usePosts({ handle, postType: selectedType, startDate, endDate });
 
   return (
     <div className="space-y-6">
@@ -30,8 +32,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`flex-1 p-2 rounded-md transition-colors ${
               selectedType === 'all'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             <LayoutGrid className="w-4 h-4 mx-auto" />
           </button>
@@ -40,8 +43,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`flex-1 p-2 rounded-md transition-colors ${
               selectedType === 'image'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             <Image className="w-4 h-4 mx-auto" />
           </button>
@@ -50,8 +54,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`flex-1 p-2 rounded-md transition-colors ${
               selectedType === 'carousel'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             <Images className="w-4 h-4 mx-auto" />
           </button>
@@ -60,8 +65,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`flex-1 p-2 rounded-md transition-colors ${
               selectedType === 'reel'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             <Film className="w-4 h-4 mx-auto" />
           </button>
@@ -83,8 +89,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
               selectedType === 'all'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             All Posts
           </button>
@@ -93,8 +100,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
               selectedType === 'image'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             Images
           </button>
@@ -103,8 +111,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
               selectedType === 'carousel'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             Carousels
           </button>
@@ -113,8 +122,9 @@ export const PostsTab: React.FC<PostsTabProps> = ({
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
               selectedType === 'reel'
                 ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                : 'text-gray-400'
+            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
+            disabled={isLoading}
           >
             Reels
           </button>
@@ -129,10 +139,11 @@ export const PostsTab: React.FC<PostsTabProps> = ({
 
       {/* Posts Grid */}
       <PostsGrid 
-        handle={handle} 
         postType={selectedType}
         startDate={startDate}
         endDate={endDate}
+        posts={posts}
+        isLoading={isLoading}
       />
     </div>
   );
