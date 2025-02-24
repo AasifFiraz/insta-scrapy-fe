@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Post } from '../../../types/post';
 import { formatNumber } from '../../../utils/numberFormat';
 import { formatDistanceToNow } from '../../../utils/dateFormat';
-import { FileText, AlignLeft, FileCode, MessageSquare } from 'lucide-react';
+import { FileText, AlignLeft, FileCode, MessageSquare, ArrowUp, ArrowDown } from 'lucide-react';
 import { MobileStructurePopup } from '../../common/MobileStructurePopup';
 import { generateCaptionStructure } from '../../../services/postsService';
 import { EmptyState } from './EmptyState';
 import { PostType } from '../../../types/postType';
+import { orderBy } from 'lodash';
 
 interface PostListProps {
   posts: Post[];
@@ -31,6 +32,10 @@ export const PostList: React.FC<PostListProps> = ({
 }) => {
   const [selectedContent, setSelectedContent] = useState<PopupContent | null>(null);
   const [copied, setCopied] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'posted' | 'topic' | 'angle' | 'goal' | 'likes' | 'comments' | null;
+    direction: 'asc' | 'desc';
+  }>({ key: null, direction: 'desc' });
 
   if (posts.length === 0) {
     return (
@@ -41,6 +46,33 @@ export const PostList: React.FC<PostListProps> = ({
       />
     );
   }
+
+  const handleSort = (key: typeof sortConfig.key) => {
+    setSortConfig(prevConfig => ({
+      key,
+      direction: prevConfig.key === key && prevConfig.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const getSortedPosts = () => {
+    if (!sortConfig.key) return posts;
+
+    const sortKey = sortConfig.key === 'posted' ? 'createdAt' : 
+                   sortConfig.key === 'likes' ? 'stats.likes' :
+                   sortConfig.key === 'comments' ? 'stats.comments' :
+                   sortConfig.key;
+
+    return orderBy(posts, [sortKey], [sortConfig.direction]);
+  };
+
+  const sortedPosts = getSortedPosts();
+
+  const SortIcon = ({ columnKey }: { columnKey: typeof sortConfig.key }) => {
+    if (sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === 'desc' ? 
+      <ArrowDown className="w-4 h-4 inline-block ml-1" /> : 
+      <ArrowUp className="w-4 h-4 inline-block ml-1" />;
+  };
 
   const handleCopy = async () => {
     if (!selectedContent) return;
@@ -120,18 +152,48 @@ export const PostList: React.FC<PostListProps> = ({
         <table className="w-full text-left">
           <thead>
             <tr className="text-gray-400 text-sm border-b border-white/10">
-              <th className="pb-3 font-medium w-[300px]">Title</th>
-              <th className="pb-3 font-medium">Posted</th>
-              <th className="pb-3 font-medium">Topic</th>
-              <th className="pb-3 font-medium">Goal</th>
-              <th className="pb-3 font-medium">Angle</th>
-              <th className="pb-3 font-medium text-center">Likes</th>
-              <th className="pb-3 font-medium text-center">Comments</th>
+              <th className="pb-3 font-medium w-[350px]">Title</th>
+              <th 
+                className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('posted')}
+              >
+                Posted <SortIcon columnKey="posted" />
+              </th>
+              <th 
+                className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('topic')}
+              >
+                Topic <SortIcon columnKey="topic" />
+              </th>
+              <th 
+                className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('goal')}
+              >
+                Goal <SortIcon columnKey="goal" />
+              </th>
+              <th 
+                className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('angle')}
+              >
+                Angle <SortIcon columnKey="angle" />
+              </th>
+              <th 
+                className="pb-3 font-medium text-center cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('likes')}
+              >
+                Likes <SortIcon columnKey="likes" />
+              </th>
+              <th 
+                className="pb-3 font-medium text-center cursor-pointer hover:text-white transition-colors"
+                onClick={() => handleSort('comments')}
+              >
+                Comments <SortIcon columnKey="comments" />
+              </th>
               <th className="pb-3 font-medium text-center">Copy</th>
             </tr>
           </thead>
           <tbody className="text-sm">
-            {posts.map(post => (
+            {sortedPosts.map(post => (
               <tr key={post.id} className="border-b border-white/5">
                 <td className="py-4 pr-4">
                   <div className="flex items-center gap-3">
@@ -140,7 +202,14 @@ export const PostList: React.FC<PostListProps> = ({
                       alt={post.caption}
                       className="w-12 h-12 rounded object-cover"
                     />
-                    <span className="text-white line-clamp-2">{post.caption}</span>
+                    <a 
+                      href={post.post_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white line-clamp-2 hover:underline cursor-pointer"
+                    >
+                      {post.caption}
+                    </a>
                   </div>
                 </td>
                 <td className="py-4 text-gray-300">
@@ -201,7 +270,7 @@ export const PostList: React.FC<PostListProps> = ({
 
       {/* Mobile list */}
       <div className="md:hidden space-y-4">
-        {posts.map(post => (
+        {sortedPosts.map(post => (
           <div key={post.id} className="bg-white/5 rounded-lg p-3">
             <div className="flex gap-3">
               <img
@@ -210,9 +279,14 @@ export const PostList: React.FC<PostListProps> = ({
                 className="w-20 h-20 rounded object-cover shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm line-clamp-2 mb-2">
+                <a
+                  href={post.post_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white text-sm line-clamp-2 mb-2 hover:underline"
+                >
                   {post.caption}
-                </p>
+                </a>
                 <div className="flex items-center justify-between">
                   <div className="flex gap-3 text-gray-400 text-xs">
                     <span>{formatNumber(post.stats.likes)} likes</span>

@@ -45,6 +45,7 @@ interface PostsResponse {
         is_verified: boolean;
       }>;
     };
+    post_link: string;
   }>;
   total: number;
 }
@@ -128,6 +129,7 @@ export const getPosts = async (
           id: post.id,
           thumbnail: base64Image,
           caption: post.title,
+          post_link: post.post_link,
           type: post.post_type as 'image' | 'reel' | 'carousel',
           stats: {
             likes: post.likes_count,
@@ -143,7 +145,7 @@ export const getPosts = async (
             postStructure: post.post_structure,
             captionStructure: ''
           },
-          context: post.context
+          context: post.context,
         };
 
         // Notify about the ready post

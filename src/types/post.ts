@@ -4,6 +4,7 @@ export interface Post {
   id: string;
   thumbnail: string;
   caption: string;
+  post_link: string;
   type: PostType;
   stats: {
     likes: number;
