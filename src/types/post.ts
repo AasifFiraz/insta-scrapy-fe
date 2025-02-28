@@ -41,6 +41,10 @@ export interface Post {
       is_verified: boolean;
     }>;
   };
+  media?: Array<{
+    type: string;
+    url: string;
+  }>;
 }
 
 export interface PostsResponse {

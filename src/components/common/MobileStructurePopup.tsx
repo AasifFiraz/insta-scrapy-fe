@@ -1,14 +1,20 @@
 import React from 'react';
 import { Check, Loader2 } from 'lucide-react';
+import { FormattedContent } from './FormattedContent';
 
 interface MobileStructurePopupProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   content: string;
+  contentType: 'post' | 'caption' | 'postStructure' | 'captionStructure';
   onCopy: () => void;
   copied: boolean;
   isLoading?: boolean;
+  media?: Array<{
+    type: string;
+    url: string;
+  }>;
 }
 
 export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({ 
@@ -16,9 +22,11 @@ export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({
   onClose,
   title,
   content,
+  contentType,
   onCopy,
   copied,
-  isLoading = false
+  isLoading = false,
+  media
 }) => {
   if (!isOpen) return null;
 
@@ -53,13 +61,36 @@ export const MobileStructurePopup: React.FC<MobileStructurePopupProps> = ({
         </div>
 
         {/* Content */}
-        <div className="text-white whitespace-pre-wrap">
+        <div className="text-white">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
             </div>
           ) : (
-            content
+            <>
+              <FormattedContent content={content} contentType={contentType} />
+              {media && media.length > 0 && (
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {media.map((item, index) => (
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                      {item.type === 'image' ? (
+                        <img 
+                          src={item.url} 
+                          alt={`Media ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : item.type === 'video' ? (
+                        <video 
+                          src={item.url}
+                          controls
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

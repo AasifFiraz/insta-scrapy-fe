@@ -57,7 +57,7 @@ export const ProfileDashboard: React.FC = () => {
 
   return (
     <TimeRangeProvider initialValue={timeRange} onChange={handleTimeRangeChange}>
-      <div className="min-h-screen bg-black pt-24 px-4 pb-8">
+      <div className="min-h-screen bg-black pt-24 px-4 pb-8 overflow-hidden">
         <ProfileContent
           handle={handle}
           activeTab={activeTab}

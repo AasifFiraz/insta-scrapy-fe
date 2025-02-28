@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Prevent overscroll behavior that causes white space */
+html {
+  overscroll-behavior-y: none;
+  scroll-behavior: smooth;
+}
+
+body {
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
+  background-color: black;
+}
+
+/* Fix for mobile browsers */
+@media (max-width: 768px) {
+  html, body {
+    height: 100%;
+    position: fixed;
+    width: 100%;
+    overflow: auto;
+  }
+}
+
+/* Fix for container overflow */
+.overflow-container {
+  overflow: hidden;
+  position: relative;
+}
+
+/* Ensure content doesn't cause unexpected scrolling */
+.content-container {
+  position: relative;
+  height: 100%;
+}
