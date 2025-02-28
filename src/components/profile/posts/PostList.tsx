@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Post } from '../../../types/post';
 import { formatNumber } from '../../../utils/numberFormat';
 import { formatDistanceToNow } from '../../../utils/dateFormat';
-import { FileText, AlignLeft, FileCode, MessageSquare, ArrowUp, ArrowDown } from 'lucide-react';
+import { FileText, AlignLeft, FileCode, MessageSquare, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { MobileStructurePopup } from '../../common/MobileStructurePopup';
-import { generateCaptionStructure } from '../../../services/postsService';
+import { generateCaptionStructure, processPostMedia } from '../../../services/postsService';
 import { EmptyState } from './EmptyState';
 import { PostType } from '../../../types/postType';
 import { orderBy } from 'lodash';
@@ -14,6 +14,13 @@ interface PostListProps {
   postType?: PostType | 'all';
   startDate?: Date | null;
   endDate?: Date | null;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  showPagination?: boolean;
+  isLoading: boolean;
 }
 
 type PopupContent = {
@@ -28,7 +35,14 @@ export const PostList: React.FC<PostListProps> = ({
   posts, 
   postType = 'all',
   startDate,
-  endDate
+  endDate,
+  currentPage,
+  hasNextPage,
+  hasPreviousPage,
+  onNextPage,
+  onPreviousPage,
+  showPagination = true,
+  isLoading
 }) => {
   const [selectedContent, setSelectedContent] = useState<PopupContent | null>(null);
   const [copied, setCopied] = useState(false);
@@ -37,13 +51,57 @@ export const PostList: React.FC<PostListProps> = ({
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'desc' });
 
+  // Loading indicator component
+  const LoadingIndicator = () => (
+    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+      <div className="relative">
+        <Loader2 className="w-10 h-10 text-white animate-spin" />
+      </div>
+      <p className="text-gray-400 text-sm font-medium">Loading posts...</p>
+    </div>
+  );
+
+  // Show loading indicator when loading
+  if (isLoading) {
+    return (
+      <LoadingIndicator />
+    );
+  }
+
+  // Show empty state when no posts and not loading
   if (posts.length === 0) {
     return (
-      <EmptyState 
-        postType={postType}
-        startDate={startDate}
-        endDate={endDate}
-      />
+      <>
+        <EmptyState 
+          postType={postType}
+          startDate={startDate}
+          endDate={endDate}
+        />
+        
+        {/* Show pagination only if not on page 1 or explicitly told to show it */}
+        {(currentPage > 1 && showPagination) && (
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <button
+              onClick={onPreviousPage}
+              disabled={!hasPreviousPage}
+              className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors bg-white/10 hover:bg-white/20 text-white"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-gray-400 text-xs font-medium min-w-[3rem] text-center">
+              Page {currentPage}
+            </span>
+            <button
+              disabled={true}
+              className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors bg-white/5 text-gray-500 cursor-not-allowed"
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -92,8 +150,49 @@ export const PostList: React.FC<PostListProps> = ({
 
     switch (type) {
       case 'post':
-        text = post.copy.post;
-        title = 'Post Copy';
+        // Show loading state immediately
+        setSelectedContent({
+          type,
+          text: '',
+          postType: post.type,
+          title: 'Post Copy',
+          isLoading: true
+        });
+
+        if (post.media && post.media.length > 0) {
+          try {
+            // Process media to get extracted text
+            const extractedText = await processPostMedia(post.media);
+            
+            // Update with extracted text
+            setSelectedContent({
+              type,
+              text: extractedText,
+              postType: post.type,
+              title: 'Post Copy',
+              isLoading: false
+            });
+            return;
+          } catch (error) {
+            console.error('Error processing media:', error);
+            setSelectedContent({
+              type,
+              text: post.copy.post,
+              postType: post.type,
+              title: 'Post Copy',
+              isLoading: false
+            });
+            return;
+          }
+        } else {
+          setSelectedContent({
+            type,
+            text: post.copy.post,
+            postType: post.type,
+            title: 'Post Copy',
+            isLoading: false
+          });
+        }
         break;
       case 'caption':
         text = post.copy.caption;
@@ -142,13 +241,15 @@ export const PostList: React.FC<PostListProps> = ({
         }
     }
     
-    setSelectedContent({ type, text, postType: post.type, title });
+    // if (type !== 'post') {
+      setSelectedContent({ type, text, postType: post.type, title });
+    // }
   };
 
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto overflow-y-hidden">
         <table className="w-full text-left">
           <thead>
             <tr className="text-gray-400 text-sm border-b border-white/10">
@@ -266,6 +367,47 @@ export const PostList: React.FC<PostListProps> = ({
             ))}
           </tbody>
         </table>
+
+        {/* Pagination Controls - Only show if explicitly told to */}
+        {showPagination && (
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <button
+              onClick={onPreviousPage}
+              disabled={!hasPreviousPage || isLoading}
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                hasPreviousPage && !isLoading
+                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  : 'bg-white/5 text-gray-500 cursor-not-allowed'
+              }`}
+              aria-label="Previous page"
+            >
+              {isLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </button>
+            <span className="text-gray-400 text-xs font-medium min-w-[3rem] text-center">
+              Page {currentPage}
+            </span>
+            <button
+              onClick={onNextPage}
+              disabled={!hasNextPage || isLoading}
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                hasNextPage && !isLoading
+                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  : 'bg-white/5 text-gray-500 cursor-not-allowed'
+              }`}
+              aria-label="Next page"
+            >
+              {isLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Mobile list */}
@@ -335,6 +477,47 @@ export const PostList: React.FC<PostListProps> = ({
             </div>
           </div>
         ))}
+
+        {/* Mobile Pagination Controls - Only show if explicitly told to */}
+        {showPagination && (
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <button
+              onClick={onPreviousPage}
+              disabled={!hasPreviousPage || isLoading}
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                hasPreviousPage && !isLoading
+                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  : 'bg-white/5 text-gray-500 cursor-not-allowed'
+              }`}
+              aria-label="Previous page"
+            >
+              {isLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <ChevronLeft className="w-4 h-4" />
+              )}
+            </button>
+            <span className="text-gray-400 text-xs font-medium min-w-[3rem] text-center">
+              Page {currentPage}
+            </span>
+            <button
+              onClick={onNextPage}
+              disabled={!hasNextPage || isLoading}
+              className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                hasNextPage && !isLoading
+                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  : 'bg-white/5 text-gray-500 cursor-not-allowed'
+              }`}
+              aria-label="Next page"
+            >
+              {isLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Content popup */}
@@ -344,11 +527,12 @@ export const PostList: React.FC<PostListProps> = ({
           <MobileStructurePopup
             isOpen={!!selectedContent}
             onClose={() => setSelectedContent(null)}
-            title={selectedContent.title}
-            content={selectedContent.isLoading ? 'Generating caption structure...' : selectedContent.text}
+            title={selectedContent?.title || ''}
+            content={selectedContent?.text || ''}
+            contentType={selectedContent?.type || 'post'}
             onCopy={handleCopy}
             copied={copied}
-            isLoading={selectedContent.isLoading}
+            isLoading={selectedContent?.isLoading}
           />
         </div>
       )}

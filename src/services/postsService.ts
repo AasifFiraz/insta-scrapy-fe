@@ -47,6 +47,12 @@ interface PostsResponse {
     };
     post_link: string;
   }>;
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
   total: number;
 }
 
@@ -54,7 +60,12 @@ interface GenerateCaptionResponse {
   structured_caption: string;
 }
 
-const convertImageToBase64 = async (imageUrl: string): Promise<string> => {
+interface ProcessMediaResponse {
+  extracted_text: string;
+  success: boolean;
+}
+
+export const convertImageToBase64 = async (imageUrl: string): Promise<string> => {
   try {
     const response = await axiosInstance.get('/proxy/image', {
       params: {
@@ -104,17 +115,31 @@ export const generateCaptionStructure = async (
   }
 };
 
+export const processPostMedia = async (mediaUrls: Array<{ type: string; url: string }>): Promise<string> => {
+  try {
+    const response = await axiosInstance.post<ProcessMediaResponse>('/process-media', {
+      media_urls: mediaUrls
+    });
+    return response.data.extracted_text;
+  } catch (error) {
+    console.error('Error processing media:', error);
+    throw error;
+  }
+};
+
 export const getPosts = async (
   handle: string,
   days: number = 7,
   type?: 'image' | 'reel' | 'carousel',
+  page: number = 1,
   onPostReady?: (post: Post) => void
-): Promise<Post[]> => {
+): Promise<{ posts: Post[]; pagination: PostsResponse['pagination'] }> => {
   try {
     const response = await axiosInstance.get<PostsResponse>(`/profile/${handle}/posts`, {
       params: {
         days,
-        type
+        type,
+        page
       }
     });
 
@@ -122,12 +147,12 @@ export const getPosts = async (
     const postPromises = response.data.posts.map(async post => {
       try {
         // Convert the image first
-        const base64Image = await convertImageToBase64(post.thumbnail_image);
+        // const base64Image = await convertImageToBase64(post.thumbnail_image);
         
         // Create the post object only after image conversion
         const readyPost: Post = {
           id: post.id,
-          thumbnail: base64Image,
+          thumbnail: post.thumbnail_image,
           caption: post.title,
           post_link: post.post_link,
           type: post.post_type as 'image' | 'reel' | 'carousel',
@@ -146,6 +171,7 @@ export const getPosts = async (
             captionStructure: ''
           },
           context: post.context,
+          media: post.media_url
         };
 
         // Notify about the ready post
@@ -153,16 +179,15 @@ export const getPosts = async (
         return readyPost;
       } catch (error) {
         console.error('Error preparing post:', error);
-        // Skip this post if image conversion fails
         return null;
       }
     });
 
     // Wait for all posts and filter out failed ones
     const completedPosts = (await Promise.all(postPromises)).filter((post): post is Post => post !== null);
-    return completedPosts;
+    return { posts: completedPosts, pagination: response.data.pagination };
   } catch (error) {
     console.error('Error fetching posts:', error);
-    return [];
+    return { posts: [], pagination: { page: 1, page_size: 5, total: 0, total_pages: 0 } };
   }
 };

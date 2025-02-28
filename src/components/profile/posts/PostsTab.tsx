@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Image, Images, Film, LayoutGrid } from 'lucide-react';
 import { PostType } from '../../../types/postType';
-import { PostsGrid } from './PostsGrid';
+import { PostList } from './PostList';
 import { DateRangeSelector } from '../save/DateRangeSelector';
 import { usePosts } from '../../../hooks/usePosts';
 
@@ -19,7 +19,16 @@ export const PostsTab: React.FC<PostsTabProps> = ({
   onDateChange
 }) => {
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
-  const { posts, isLoading } = usePosts({ handle, postType: selectedType, startDate, endDate });
+  const { 
+    posts, 
+    isLoading, 
+    currentPage,
+    hasNextPage,
+    hasPreviousPage,
+    goToNextPage,
+    goToPreviousPage,
+    showPagination
+  } = usePosts({ handle, postType: selectedType, startDate, endDate });
 
   return (
     <div className="space-y-6">
@@ -137,12 +146,17 @@ export const PostsTab: React.FC<PostsTabProps> = ({
         />
       </div>
 
-      {/* Posts Grid */}
-      <PostsGrid 
+      <PostList 
+        posts={posts} 
         postType={selectedType}
         startDate={startDate}
         endDate={endDate}
-        posts={posts}
+        currentPage={currentPage}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onNextPage={goToNextPage}
+        onPreviousPage={goToPreviousPage}
+        showPagination={showPagination}
         isLoading={isLoading}
       />
     </div>
