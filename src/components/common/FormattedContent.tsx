@@ -17,18 +17,45 @@ export const FormattedContent: React.FC<FormattedContentProps> = ({
   const isNumberedFormat = /^\d+\.\s/.test(content);
 
   if (!isNumberedFormat) {
-    // Handle non-numbered format - combine all text ignoring line breaks
-    const text = content
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .join(' ');
-
-    return (
-      <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm border border-white/10">
-        <p className="text-base leading-relaxed text-white/90">{text}</p>
-      </div>
-    );
+    // Check if content appears to be a conversation (contains "Speaker" or similar patterns)
+    const isConversationFormat = /Speaker \d+:|Speaker:/.test(content);
+    
+    if (isConversationFormat) {
+      // For conversation format, preserve line breaks
+      const lines = content.split('\n').filter(line => line.trim().length > 0);
+      
+      return (
+        <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm border border-white/10">
+          {lines.map((line, index) => {
+            // Check if this line starts with a speaker indicator
+            const isSpeakerLine = /Speaker \d+:|Speaker:/.test(line);
+            
+            return (
+              <div key={index} className={isSpeakerLine ? "mt-3 first:mt-0" : ""}>
+                <p className={`text-base leading-relaxed ${isSpeakerLine ? "text-white font-medium" : "text-white/90"}`}>
+                  {line}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      );
+    } else {
+      // For regular non-numbered, non-conversation content, preserve line breaks
+      const paragraphs = content
+        .split('\n')
+        .filter(line => line.trim().length > 0);
+      
+      return (
+        <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm border border-white/10">
+          {paragraphs.map((paragraph, index) => (
+            <p key={index} className="text-base leading-relaxed text-white/90 mb-2 last:mb-0">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      );
+    }
   }
 
   // For numbered format, first split the content at numbers
