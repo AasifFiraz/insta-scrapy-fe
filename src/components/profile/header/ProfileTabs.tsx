@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { User, Grid, Lightbulb, Lock } from 'lucide-react';
+import { User, Grid, Lock } from 'lucide-react';
 import { TimeRangeFilter } from '../filters/TimeRangeFilter';
 import { useTimeRange } from '../context/TimeRangeContext';
 import { DateRangeSelector } from '../save/DateRangeSelector';
@@ -9,7 +9,7 @@ import { MobileFiltersBar } from '../filters/MobileFiltersBar';
 import { useAuth } from '../../../hooks/useAuth';
 
 interface TabConfig {
-  id: 'analytics' | 'posts' | 'insights';
+  id: 'analytics' | 'posts';
   label: string;
   icon: React.FC<{ className?: string }>;
   isPro?: boolean;
@@ -17,8 +17,7 @@ interface TabConfig {
 
 const TABS: readonly TabConfig[] = [
   { id: 'analytics', label: 'Profile', icon: User },
-  { id: 'posts', label: 'Posts', icon: Grid, isPro: true },
-  { id: 'insights', label: 'Insights', icon: Lightbulb, isPro: true }
+  { id: 'posts', label: 'Posts', icon: Grid, isPro: true }
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -40,8 +39,8 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
   const { isAuthenticated } = useAuth();
 
   const handleTabClick = (tabId: TabId) => {
-    // Only allow switching to posts/insights if authenticated
-    if (!isAuthenticated && (tabId === 'posts' || tabId === 'insights')) {
+    // Only allow switching to posts if authenticated
+    if (!isAuthenticated && tabId === 'posts') {
       return;
     }
     setSearchParams({ tab: tabId });
@@ -49,8 +48,8 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
 
   // Show time range filter for analytics tab
   const showTimeRange = activeTab === 'analytics';
-  // Show date range selector for posts and insights tabs
-  const showDateRange = activeTab === 'posts' || activeTab === 'insights';
+  // Show date range selector for posts tab
+  const showDateRange = activeTab === 'posts';
 
   return (
     <div className="flex flex-col gap-4">
@@ -59,7 +58,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
         {/* Tab buttons */}
         <div className="flex gap-2 bg-white/5 rounded-lg p-1">
           {TABS.map(({ id, label, icon: Icon, isPro }) => {
-            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights');
+            const isDisabled = !isAuthenticated && id === 'posts';
             return (
               <button
                 key={id}
@@ -104,7 +103,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
       <div className="hidden sm:flex items-center justify-between">
         <div className="flex items-center gap-2">
           {TABS.map(({ id, label, icon: Icon, isPro }) => {
-            const isDisabled = !isAuthenticated && (id === 'posts' || id === 'insights');
+            const isDisabled = !isAuthenticated && id === 'posts';
             return (
               <button
                 key={id}
@@ -146,6 +145,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
               startDate={startDate}
               endDate={endDate}
               onDateChange={onDateChange}
+              maxDays={90}
             />
           )}
         </div>

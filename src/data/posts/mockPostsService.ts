@@ -1,4 +1,4 @@
-import { Post, PostsResponse } from '../../types/post';
+import { PostsResponse } from '../../types/post';
 import { PostType } from '../../types/postType';
 import { generateMockPosts } from './generators';
 

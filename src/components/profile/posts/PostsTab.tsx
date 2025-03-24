@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, Images, Film, LayoutGrid } from 'lucide-react';
+import { useUserInformation } from '../../../hooks/useUserInformation';
+import { UserInformation } from '../UserInformation';
 import { PostType } from '../../../types/postType';
 import { PostList } from './PostList';
 import { DateRangeSelector } from '../save/DateRangeSelector';
 import { usePosts } from '../../../hooks/usePosts';
+import { useInsightsMetrics } from '../../../hooks/useInsightsMetrics';
+import { InsightsMetricsGrid } from '../insights/metrics/InsightsMetricsGrid';
+import { SavedAnalytics } from '../save/analytics/SavedAnalytics';
+
+
 
 interface PostsTabProps {
   handle: string;
   startDate?: Date | null;
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
+
 }
 
 export const PostsTab: React.FC<PostsTabProps> = ({ 
@@ -19,6 +27,10 @@ export const PostsTab: React.FC<PostsTabProps> = ({
   onDateChange
 }) => {
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
+  const [showContent, setShowContent] = useState<boolean>(false);
+  
+  // Fetch user information with typewriter effect
+  const { displayedText, isTypingComplete, isLoading: userInfoLoading } = useUserInformation(handle);
   const { 
     posts, 
     isLoading, 
@@ -30,10 +42,26 @@ export const PostsTab: React.FC<PostsTabProps> = ({
     showPagination
   } = usePosts({ handle, postType: selectedType, startDate, endDate });
 
+  // Use the hook with post type filter for insights data
+  const { metrics, isLoading: insightsLoading, error: insightsError } = useInsightsMetrics(handle, startDate, endDate, selectedType);
+  
+  // Show content after typewriter animation completes
+  useEffect(() => {
+    if (isTypingComplete) {
+      setShowContent(true);
+    }
+  }, [isTypingComplete]);
+
   return (
     <div className="space-y-6">
-      {/* Mobile Filters */}
-      <div className="sm:hidden space-y-4">
+      {/* User Information with typewriter effect */}
+      <UserInformation text={displayedText} isLoading={userInfoLoading} />
+      
+      {/* Section Heading - Posts - only shown after typewriter animation completes */}
+      {showContent && <h2 className="text-xl font-semibold text-white">Posts</h2>}
+
+      {/* Mobile Filters - only shown after typewriter animation completes */}
+      {showContent && <div className="sm:hidden space-y-4">
         {/* Post Type Filter */}
         <div className="flex gap-2 bg-white/5 rounded-lg p-1">
           <button
@@ -87,11 +115,12 @@ export const PostsTab: React.FC<PostsTabProps> = ({
           startDate={startDate}
           endDate={endDate}
           onDateChange={onDateChange || (() => {})}
+          maxDays={90}
         />
-      </div>
+      </div>}
 
-      {/* Desktop Filters */}
-      <div className="hidden sm:flex sm:items-center justify-between gap-4">
+      {/* Desktop Filters - only shown after typewriter animation completes */}
+      {showContent && <div className="hidden sm:flex sm:items-center justify-between gap-4">
         <div className="flex gap-2 bg-white/5 rounded-lg p-1">
           <button
             onClick={() => setSelectedType('all')}
@@ -143,22 +172,65 @@ export const PostsTab: React.FC<PostsTabProps> = ({
           startDate={startDate}
           endDate={endDate}
           onDateChange={onDateChange || (() => {})}
+          maxDays={90}
         />
-      </div>
+      </div>}
 
-      <PostList 
-        posts={posts} 
-        postType={selectedType}
-        startDate={startDate}
-        endDate={endDate}
-        currentPage={currentPage}
-        hasNextPage={hasNextPage}
-        hasPreviousPage={hasPreviousPage}
-        onNextPage={goToNextPage}
-        onPreviousPage={goToPreviousPage}
-        showPagination={showPagination}
-        isLoading={isLoading}
-      />
+      {/* Only show PostList after typewriter animation completes */}
+      {showContent && (
+        <PostList 
+          posts={posts} 
+          postType={selectedType}
+          startDate={startDate}
+          endDate={endDate}
+          currentPage={currentPage}
+          hasNextPage={hasNextPage}
+          hasPreviousPage={hasPreviousPage}
+          onNextPage={goToNextPage}
+          onPreviousPage={goToPreviousPage}
+          showPagination={showPagination}
+          isLoading={isLoading}
+        />
+      )}
+
+      {/* Section Heading - Insights - only shown after typewriter animation completes */}
+      {showContent && <h2 className="text-xl font-semibold text-white mt-10">Insights</h2>}
+
+      {/* Insights Content - only shown after typewriter animation completes */}
+      {showContent && (
+        insightsError ? (
+          <div className="text-red-500 p-4">
+            Failed to load insights metrics: {insightsError}
+          </div>
+        ) : insightsLoading || !metrics ? (
+          <div className="space-y-6">
+            {/* Loading skeleton for metrics grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="bg-white/5 rounded-xl p-6 animate-pulse">
+                  <div className="h-4 bg-white/10 rounded w-24 mb-4" />
+                  <div className="h-8 bg-white/10 rounded w-32" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Metrics Grid */}
+            <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
+              <InsightsMetricsGrid metrics={metrics} />
+            </div>
+
+            {/* Analytics Components */}
+            <SavedAnalytics 
+              handle={handle}
+              startDate={startDate}
+              endDate={endDate}
+              postType={selectedType}
+            />
+          </>
+        )
+      )}
     </div>
   );
 };

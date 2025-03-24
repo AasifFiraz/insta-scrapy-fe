@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, Images, Film, LayoutGrid } from 'lucide-react';
 import { PostType } from '../../../types/postType';
 import { DateRangeSelector } from '../save/DateRangeSelector';
@@ -6,6 +6,7 @@ import { InsightsMetricsGrid } from './metrics/InsightsMetricsGrid';
 import { SavedAnalytics } from '../save/analytics/SavedAnalytics';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { useInsightsMetrics } from '../../../hooks/useInsightsMetrics';
+import { differenceInDays, subDays } from 'date-fns';
 
 interface InsightsTabProps {
   handle: string;
@@ -20,10 +21,23 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
   startDate,
   endDate,
   onDateChange,
-  analytics
 }) => {
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
-  const { metrics, isLoading, error } = useInsightsMetrics(handle);
+  
+  // Ensure date range is not more than 30 days for insights
+  useEffect(() => {
+    if (startDate && endDate && onDateChange) {
+      const days = differenceInDays(endDate, startDate);
+      if (days > 30) {
+        // Adjust startDate to be 30 days before endDate
+        const newStartDate = subDays(endDate, 30);
+        onDateChange(newStartDate, endDate);
+      }
+    }
+  }, [startDate, endDate, onDateChange]);
+
+  // Use the hook with post type filter
+  const { metrics, isLoading, error } = useInsightsMetrics(handle, startDate, endDate, selectedType);
 
   if (error) {
     return (
@@ -48,6 +62,24 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
       </div>
     );
   }
+
+  // Custom date change handler to enforce 30-day limit
+  const handleDateChange = (start: Date | null, end: Date | null) => {
+    if (!onDateChange) return;
+    
+    if (start && end) {
+      const days = differenceInDays(end, start);
+      if (days > 30) {
+        // Adjust startDate to be 30 days before endDate
+        const newStartDate = subDays(end, 30);
+        onDateChange(newStartDate, end);
+      } else {
+        onDateChange(start, end);
+      }
+    } else {
+      onDateChange(start, end);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -101,7 +133,8 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
         <DateRangeSelector
           startDate={startDate}
           endDate={endDate}
-          onDateChange={onDateChange || (() => {})}
+          onDateChange={handleDateChange}
+          maxDays={90}
         />
       </div>
 
@@ -152,7 +185,8 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
         <DateRangeSelector
           startDate={startDate}
           endDate={endDate}
-          onDateChange={onDateChange || (() => {})}
+          onDateChange={handleDateChange}
+          maxDays={90}
         />
       </div>
 

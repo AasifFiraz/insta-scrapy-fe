@@ -3,7 +3,6 @@ import { SavedPostTypeAnalysis } from './SavedPostTypeAnalysis';
 import { SavedEngagementDistribution } from './SavedEngagementDistribution';
 import { PostAnalysis } from './PostAnalysis';
 import { TopicAnalysis } from './topics/TopicAnalysis';
-import { HistoricalAnalysis } from './historical/HistoricalAnalysis';
 import { useSavedAnalytics } from '../../../../hooks/useSavedAnalytics';
 import { PostType } from '../../../../types/postType';
 
@@ -20,7 +19,7 @@ export const SavedAnalytics: React.FC<SavedAnalyticsProps> = ({
   endDate,
   postType
 }) => {
-  const { data, isLoading } = useSavedAnalytics(handle, startDate, endDate);
+  const { isLoading } = useSavedAnalytics(handle, startDate, endDate);
 
   if (isLoading) {
     return (
@@ -32,15 +31,6 @@ export const SavedAnalytics: React.FC<SavedAnalyticsProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Historical Analysis */}
-      <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
-        <HistoricalAnalysis 
-          handle={handle}
-          startDate={startDate}
-          endDate={endDate}
-        />
-      </div>
-
       {/* Analytics Components */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">

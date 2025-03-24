@@ -2,7 +2,6 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { AnalyticsTab } from '../analytics/AnalyticsTab';
 import { PostsTab } from '../posts/PostsTab';
-import { InsightsTab } from '../insights/InsightsTab';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { useAuth } from '../../../hooks/useAuth';
 
@@ -27,7 +26,7 @@ export const TabContent: React.FC<TabContentProps> = ({
 
   // If user is not authenticated and tries to access protected tabs,
   // redirect to analytics tab
-  if (!isAuthenticated && (activeTab === 'posts' || activeTab === 'insights')) {
+  if (!isAuthenticated && activeTab === 'posts') {
     return <Navigate to={`/profile/${handle}?tab=analytics`} replace />;
   }
 
@@ -43,16 +42,7 @@ export const TabContent: React.FC<TabContentProps> = ({
           onDateChange={onDateChange}
         />
       );
-    case 'insights':
-      return (
-        <InsightsTab 
-          handle={handle}
-          startDate={startDate}
-          endDate={endDate}
-          onDateChange={onDateChange}
-          analytics={analytics}
-        />
-      );
+
     default:
       return null;
   }

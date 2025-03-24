@@ -98,6 +98,7 @@ export const TabList: React.FC<{
           startDate={startDate}
           endDate={endDate}
           onDateChange={onDateChange}
+          maxDays={undefined}
         />
       )}
     </div>

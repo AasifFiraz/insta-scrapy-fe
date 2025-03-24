@@ -32,7 +32,7 @@ export interface InsightsMetrics {
     hashtagCountChange: number;
     newCTAs: number;
     ctaChange: number;
-    readingLevel: number;
+    readingLevel: string;
     readingLevelChange: number;
   };
 }

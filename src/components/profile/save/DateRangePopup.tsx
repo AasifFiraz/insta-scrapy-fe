@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { parseNaturalDate } from '../../../utils/dateParser';
-import { format } from 'date-fns';
-import { Calendar } from 'lucide-react';
+import { format, differenceInDays, subDays } from 'date-fns';
+import { Calendar, AlertCircle } from 'lucide-react';
 
 interface DateRangePopupProps {
   startDate: Date | null;
@@ -9,6 +9,7 @@ interface DateRangePopupProps {
   onDateChange: (start: Date | null, end: Date | null) => void;
   onClose: () => void;
   isMobile?: boolean;
+  maxDays?: number; // Maximum allowed number of days in the range
 }
 
 export const DateRangePopup: React.FC<DateRangePopupProps> = ({
@@ -16,7 +17,8 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
   endDate,
   onDateChange,
   onClose,
-  isMobile = false
+  isMobile = false,
+  maxDays
 }) => {
   const [tempStart, setTempStart] = useState(startDate);
   const [tempEnd, setTempEnd] = useState(endDate);
@@ -38,13 +40,29 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
         if (tempEnd && parsedDate > tempEnd) {
           setTempEnd(parsedDate);
           setEndInput(format(parsedDate, 'MMM d, yyyy'));
+        } else if (tempEnd && maxDays && differenceInDays(tempEnd, parsedDate) > maxDays) {
+          // If the new date would exceed maxDays, adjust it
+          const newStart = subDays(tempEnd, maxDays);
+          setTempStart(newStart);
+          setStartInput(format(newStart, 'MMM d, yyyy'));
+        } else {
+          setTempStart(parsedDate);
         }
       } else {
         if (tempStart && parsedDate < tempStart) {
           setTempStart(parsedDate);
           setStartInput(format(parsedDate, 'MMM d, yyyy'));
+        } else if (tempStart && maxDays && differenceInDays(parsedDate, tempStart) > maxDays) {
+          // If the new date would exceed maxDays, adjust it
+          const newEnd = subDays(parsedDate, 0); // Keep the selected end date
+          const newStart = subDays(newEnd, maxDays); // But adjust the start date
+          setTempStart(newStart);
+          setStartInput(format(newStart, 'MMM d, yyyy'));
+          setTempEnd(newEnd);
+          setEndInput(format(newEnd, 'MMM d, yyyy'));
+        } else {
+          setTempEnd(parsedDate);
         }
-        setTempEnd(parsedDate);
       }
     }
   };
@@ -60,6 +78,18 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
   };
 
   const handleApply = () => {
+    // Enforce maxDays if set
+    if (maxDays && tempStart && tempEnd) {
+      const days = differenceInDays(tempEnd, tempStart);
+      if (days > maxDays) {
+        // Adjust startDate to respect maxDays
+        const newStartDate = subDays(tempEnd, maxDays);
+        onDateChange(newStartDate, tempEnd);
+        onClose();
+        return;
+      }
+    }
+    
     onDateChange(tempStart, tempEnd);
     onClose();
   };
@@ -79,6 +109,19 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
     { label: 'Last 90 days', value: '90 days ago' }
   ];
 
+  // Filter out options that exceed maxDays
+  const filteredQuickSelects = maxDays 
+    ? quickSelects.filter(option => {
+        const days = parseInt(option.value.split(' ')[0]);
+        return days <= maxDays;
+      })
+    : quickSelects;
+
+  // Add a note about the maximum days limit if specified
+  const maxDaysNote = maxDays 
+    ? `Note: Maximum range is limited to ${maxDays} days.`
+    : null;
+
   if (isMobile) {
     return (
       <>
@@ -95,7 +138,7 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
         >
           {/* Quick select buttons */}
           <div className="grid grid-cols-3 gap-2">
-            {quickSelects.map(({ label, value }) => (
+            {filteredQuickSelects.map(({ label, value }) => (
               <button
                 key={label}
                 onClick={() => {
@@ -152,6 +195,13 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
             Try: "today", "yesterday", "last week", "7 days ago"
           </p>
 
+          {maxDaysNote && (
+            <div className="flex items-center gap-2 text-xs text-amber-500">
+              <AlertCircle className="w-4 h-4" />
+              <p>{maxDaysNote}</p>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-2">
             <button
               onClick={handleClear}
@@ -183,7 +233,7 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
       <div className="absolute right-0 mt-2 w-[400px] bg-black border border-white/10 rounded-lg shadow-xl p-4 z-50">
         {/* Quick select buttons */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          {quickSelects.map(({ label, value }) => (
+          {filteredQuickSelects.map(({ label, value }) => (
             <button
               key={label}
               onClick={() => {
@@ -239,6 +289,13 @@ export const DateRangePopup: React.FC<DateRangePopupProps> = ({
         <p className="text-xs text-gray-500 mt-4">
           Try: "today", "yesterday", "last week", "7 days ago"
         </p>
+
+        {maxDaysNote && (
+          <div className="flex items-center gap-2 text-xs text-amber-500 mt-2">
+            <AlertCircle className="w-4 h-4" />
+            <p>{maxDaysNote}</p>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 mt-4">
           <button

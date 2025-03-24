@@ -3,7 +3,7 @@ import {
   Users, UserPlus, FileText, TrendingUp, 
   Heart, MessageCircle, Activity, Share2, 
   Target, FileEdit, AlignLeft, Hash,
-  MousePointer, BookOpen
+  BookOpen
 } from 'lucide-react';
 import { InsightMetricCard } from './InsightMetricCard';
 import { InsightsMetrics } from './types';
@@ -124,16 +124,8 @@ export const InsightsMetricsGrid: React.FC<InsightsMetricsGridProps> = ({ metric
       tooltip: 'Average hashtags per post and change from previous period'
     },
     {
-      title: 'New CTAs',
-      value: metrics.content.newCTAs,
-      change: `${metrics.content.ctaChange}%`,
-      changeType: metrics.content.ctaChange >= 0 ? 'increase' : 'decrease',
-      icon: MousePointer,
-      tooltip: 'New call-to-actions added in this period'
-    },
-    {
       title: 'Reading Level',
-      value: metrics.content.readingLevel.toFixed(1),
+      value: metrics.content.readingLevel,
       change: `${metrics.content.readingLevelChange}%`,
       changeType: metrics.content.readingLevelChange >= 0 ? 'increase' : 'decrease',
       icon: BookOpen,

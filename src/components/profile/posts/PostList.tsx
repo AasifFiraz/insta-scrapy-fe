@@ -8,6 +8,7 @@ import { generateCaptionStructure, processPostMedia } from '../../../services/po
 import { EmptyState } from './EmptyState';
 import { PostType } from '../../../types/postType';
 import { orderBy } from 'lodash';
+import { PostSkeleton } from './PostSkeleton';
 
 interface PostListProps {
   posts: Post[];
@@ -27,7 +28,7 @@ type PopupContent = {
   type: 'post' | 'caption' | 'postStructure' | 'captionStructure';
   text: string;
   postType: string;
-  title: string;
+  title: string;  
   isLoading?: boolean;
 }
 
@@ -51,20 +52,14 @@ export const PostList: React.FC<PostListProps> = ({
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'desc' });
 
-  // Loading indicator component
-  const LoadingIndicator = () => (
-    <div className="flex flex-col items-center justify-center py-12 space-y-4">
-      <div className="relative">
-        <Loader2 className="w-10 h-10 text-white animate-spin" />
-      </div>
-      <p className="text-gray-400 text-sm font-medium">Loading posts...</p>
-    </div>
-  );
-
-  // Show loading indicator when loading
+  // Show loading skeleton when loading
   if (isLoading) {
     return (
-      <LoadingIndicator />
+      <div className="grid gap-4 grid-cols-1">
+        {Array.from({ length: 20 }).map((_, index) => (
+          <PostSkeleton key={index} />
+        ))}
+      </div>
     );
   }
 
@@ -348,16 +343,16 @@ export const PostList: React.FC<PostListProps> = ({
                       <MessageSquare className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => showContent('postStructure', post)}
-                      className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-                      title="Post Structure"
+                      className="p-2 rounded-lg text-gray-400/50 cursor-not-allowed group relative"
+                      title="Coming Soon"
+                      disabled
                     >
                       <FileText className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => showContent('captionStructure', post)}
-                      className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-                      title="Caption Structure"
+                      className="p-2 rounded-lg text-gray-400/50 cursor-not-allowed group relative"
+                      title="Coming Soon"
+                      disabled
                     >
                       <AlignLeft className="w-4 h-4" />
                     </button>
@@ -459,16 +454,16 @@ export const PostList: React.FC<PostListProps> = ({
                     <MessageSquare className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => showContent('postStructure', post)}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                    title="Post Structure"
+                    className="p-2 rounded-lg bg-white/5 text-gray-400/50 cursor-not-allowed group relative"
+                    title="Coming Soon"
+                    disabled
                   >
                     <FileText className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => showContent('captionStructure', post)}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                    title="Caption Structure"
+                    className="p-2 rounded-lg bg-white/5 text-gray-400/50 cursor-not-allowed group relative"
+                    title="Coming Soon"
+                    disabled
                   >
                     <AlignLeft className="w-4 h-4" />
                   </button>

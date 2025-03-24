@@ -8,12 +8,14 @@ interface DateRangeProps {
   startDate: Date | null | undefined;  // Updated to allow undefined
   endDate: Date | null | undefined;    // Updated to allow undefined
   onDateChange: (start: Date | null, end: Date | null) => void;
+  maxDays?: number; // Maximum allowed days in the range
 }
 
 export const DateRangeSelector: React.FC<DateRangeProps> = ({
   startDate,
   endDate,
   onDateChange,
+  maxDays
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLDivElement>(null);
@@ -80,6 +82,7 @@ export const DateRangeSelector: React.FC<DateRangeProps> = ({
           onDateChange={onDateChange}
           onClose={() => setIsOpen(false)}
           isMobile={window.innerWidth < 640}
+          maxDays={maxDays}
         />
       )}
     </div>
