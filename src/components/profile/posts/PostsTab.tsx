@@ -20,7 +20,7 @@ interface PostsTabProps {
 
 }
 
-export const PostsTab: React.FC<PostsTabProps> = ({ 
+export const PostsTab: React.FC<PostsTabProps> = ({
   handle,
   startDate,
   endDate,
@@ -28,12 +28,13 @@ export const PostsTab: React.FC<PostsTabProps> = ({
 }) => {
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
   const [showContent, setShowContent] = useState<boolean>(false);
-  
+  const [showTypingAnimation, setShowTypingAnimation] = useState<boolean>(true);
+
   // Fetch user information with typewriter effect
   const { displayedText, isTypingComplete, isLoading: userInfoLoading } = useUserInformation(handle);
-  const { 
-    posts, 
-    isLoading, 
+  const {
+    posts,
+    isLoading,
     currentPage,
     hasNextPage,
     hasPreviousPage,
@@ -44,21 +45,66 @@ export const PostsTab: React.FC<PostsTabProps> = ({
 
   // Use the hook with post type filter for insights data
   const { metrics, isLoading: insightsLoading, error: insightsError } = useInsightsMetrics(handle, startDate, endDate, selectedType);
-  
-  // Show content after typewriter animation completes
+
+  // Show content after typewriter animation completes and hide typing animation
   useEffect(() => {
     if (isTypingComplete) {
       setShowContent(true);
+      // Add a small delay before hiding the typing animation to ensure smooth transition
+      const timer = setTimeout(() => {
+        setShowTypingAnimation(false);
+      }, 300); // 300ms delay
+
+      return () => clearTimeout(timer);
     }
   }, [isTypingComplete]);
 
   return (
     <div className="space-y-6">
-      {/* User Information with typewriter effect */}
-      <UserInformation text={displayedText} isLoading={userInfoLoading} />
-      
+      {/* User Information with typewriter effect - only shown until typing is complete */}
+      {showTypingAnimation && <UserInformation text={displayedText} isLoading={userInfoLoading} />}
+
+      {/* Section Heading - Insights - only shown after typewriter animation completes */}
+      {showContent && <h2 className="text-xl font-semibold text-white">Insights</h2>}
+
+      {/* Insights Content - only shown after typewriter animation completes */}
+      {showContent && (
+        insightsError ? (
+          <div className="text-red-500 p-4">
+            Failed to load insights metrics: {insightsError}
+          </div>
+        ) : insightsLoading || !metrics ? (
+          <div className="space-y-6">
+            {/* Loading skeleton for metrics grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="bg-white/5 rounded-xl p-6 animate-pulse">
+                  <div className="h-4 bg-white/10 rounded w-24 mb-4" />
+                  <div className="h-8 bg-white/10 rounded w-32" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Metrics Grid */}
+            <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
+              <InsightsMetricsGrid metrics={metrics} />
+            </div>
+
+            {/* Analytics Components */}
+            <SavedAnalytics
+              handle={handle}
+              startDate={startDate}
+              endDate={endDate}
+              postType={selectedType}
+            />
+          </>
+        )
+      )}
+
       {/* Section Heading - Posts - only shown after typewriter animation completes */}
-      {showContent && <h2 className="text-xl font-semibold text-white">Posts</h2>}
+      {showContent && <h2 className="text-xl font-semibold text-white mt-10">Posts</h2>}
 
       {/* Mobile Filters - only shown after typewriter animation completes */}
       {showContent && <div className="sm:hidden space-y-4">
@@ -178,8 +224,8 @@ export const PostsTab: React.FC<PostsTabProps> = ({
 
       {/* Only show PostList after typewriter animation completes */}
       {showContent && (
-        <PostList 
-          posts={posts} 
+        <PostList
+          posts={posts}
           postType={selectedType}
           startDate={startDate}
           endDate={endDate}
@@ -191,45 +237,6 @@ export const PostsTab: React.FC<PostsTabProps> = ({
           showPagination={showPagination}
           isLoading={isLoading}
         />
-      )}
-
-      {/* Section Heading - Insights - only shown after typewriter animation completes */}
-      {showContent && <h2 className="text-xl font-semibold text-white mt-10">Insights</h2>}
-
-      {/* Insights Content - only shown after typewriter animation completes */}
-      {showContent && (
-        insightsError ? (
-          <div className="text-red-500 p-4">
-            Failed to load insights metrics: {insightsError}
-          </div>
-        ) : insightsLoading || !metrics ? (
-          <div className="space-y-6">
-            {/* Loading skeleton for metrics grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[...Array(12)].map((_, i) => (
-                <div key={i} className="bg-white/5 rounded-xl p-6 animate-pulse">
-                  <div className="h-4 bg-white/10 rounded w-24 mb-4" />
-                  <div className="h-8 bg-white/10 rounded w-32" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Metrics Grid */}
-            <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
-              <InsightsMetricsGrid metrics={metrics} />
-            </div>
-
-            {/* Analytics Components */}
-            <SavedAnalytics 
-              handle={handle}
-              startDate={startDate}
-              endDate={endDate}
-              postType={selectedType}
-            />
-          </>
-        )
       )}
     </div>
   );
