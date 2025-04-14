@@ -57,8 +57,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics 
     avatar: profileData.profilePic,
     name: profileData.fullName,
     handle: profileData.username,
-    subscribers: profileData.followers.toString(),
-    videos: profileData.posts.toString(),
+    subscribers: profileData.followers || 0,
+    videos: profileData.posts || 0,
     views: '0', // This could be calculated from actual data if available
     description: profileData.biography
   };

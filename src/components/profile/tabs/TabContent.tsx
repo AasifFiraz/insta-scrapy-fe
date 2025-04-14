@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AnalyticsTab } from '../analytics/AnalyticsTab';
 import { PostsTab } from '../posts/PostsTab';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { useAuth } from '../../../hooks/useAuth';
+import { FiltersBar } from '../filters/FiltersBar';
+import { PostType } from '../../../types/postType';
 
 interface TabContentProps {
   activeTab: string;
@@ -14,8 +16,8 @@ interface TabContentProps {
   analytics: UseProfileAnalyticsResult;
 }
 
-export const TabContent: React.FC<TabContentProps> = ({ 
-  activeTab, 
+export const TabContent: React.FC<TabContentProps> = ({
+  activeTab,
   handle,
   startDate,
   endDate,
@@ -23,6 +25,7 @@ export const TabContent: React.FC<TabContentProps> = ({
   analytics
 }) => {
   const { isAuthenticated } = useAuth();
+  const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
 
   // If user is not authenticated and tries to access protected tabs,
   // redirect to analytics tab
@@ -30,20 +33,40 @@ export const TabContent: React.FC<TabContentProps> = ({
     return <Navigate to={`/profile/${handle}?tab=analytics`} replace />;
   }
 
-  switch (activeTab) {
-    case 'analytics':
-      return <AnalyticsTab handle={handle} analytics={analytics} />;
-    case 'posts':
-      return (
-        <PostsTab 
-          handle={handle}
-          startDate={startDate}
-          endDate={endDate}
-          onDateChange={onDateChange}
-        />
-      );
+  return (
+    <div className="space-y-6">
+      {/* Tab Content */}
+      {(() => {
+        switch (activeTab) {
+          case 'analytics':
+            return <AnalyticsTab handle={handle} analytics={analytics} />;
+          case 'posts':
+            return (
+              <>
+                {/* Filters - Only shown for Posts tab */}
+                <FiltersBar
+                  selectedType={selectedType}
+                  onTypeChange={setSelectedType}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onDateChange={onDateChange}
+                />
 
-    default:
-      return null;
-  }
+                {/* Posts Tab Content */}
+                <PostsTab
+                  handle={handle}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onDateChange={onDateChange}
+                  selectedType={selectedType}
+                  onTypeChange={setSelectedType}
+                />
+              </>
+            );
+          default:
+            return null;
+        }
+      })()}
+    </div>
+  );
 };

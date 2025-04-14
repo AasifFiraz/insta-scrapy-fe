@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Image, Images, Film, LayoutGrid } from 'lucide-react';
 import { useUserInformation } from '../../../hooks/useUserInformation';
 import { UserInformation } from '../UserInformation';
 import { PostType } from '../../../types/postType';
 import { PostList } from './PostList';
-import { DateRangeSelector } from '../save/DateRangeSelector';
 import { usePosts } from '../../../hooks/usePosts';
 import { useInsightsMetrics } from '../../../hooks/useInsightsMetrics';
 import { InsightsMetricsGrid } from '../insights/metrics/InsightsMetricsGrid';
@@ -17,16 +15,18 @@ interface PostsTabProps {
   startDate?: Date | null;
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
-
+  selectedType: PostType | 'all';
+  onTypeChange: (type: PostType | 'all') => void;
 }
 
 export const PostsTab: React.FC<PostsTabProps> = ({
   handle,
   startDate,
   endDate,
-  onDateChange
+  onDateChange, // Not used directly here as it's handled by the parent component through the FiltersBar
+  selectedType,
+  onTypeChange
 }) => {
-  const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
   const [showContent, setShowContent] = useState<boolean>(false);
   const [showTypingAnimation, setShowTypingAnimation] = useState<boolean>(true);
 
@@ -58,6 +58,15 @@ export const PostsTab: React.FC<PostsTabProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isTypingComplete]);
+
+  // Update the parent component's selectedType when it changes in this component
+  useEffect(() => {
+    // This ensures the parent component's state is updated when the API returns new data
+    // based on the selected type
+    if (posts && posts.length > 0) {
+      onTypeChange(selectedType);
+    }
+  }, [posts, selectedType, onTypeChange]);
 
   return (
     <div className="space-y-6">
@@ -105,122 +114,6 @@ export const PostsTab: React.FC<PostsTabProps> = ({
 
       {/* Section Heading - Posts - only shown after typewriter animation completes */}
       {showContent && <h2 className="text-xl font-semibold text-white mt-10">Posts</h2>}
-
-      {/* Mobile Filters - only shown after typewriter animation completes */}
-      {showContent && <div className="sm:hidden space-y-4">
-        {/* Post Type Filter */}
-        <div className="flex gap-2 bg-white/5 rounded-lg p-1">
-          <button
-            onClick={() => setSelectedType('all')}
-            className={`flex-1 p-2 rounded-md transition-colors ${
-              selectedType === 'all'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            <LayoutGrid className="w-4 h-4 mx-auto" />
-          </button>
-          <button
-            onClick={() => setSelectedType('image')}
-            className={`flex-1 p-2 rounded-md transition-colors ${
-              selectedType === 'image'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            <Image className="w-4 h-4 mx-auto" />
-          </button>
-          <button
-            onClick={() => setSelectedType('carousel')}
-            className={`flex-1 p-2 rounded-md transition-colors ${
-              selectedType === 'carousel'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            <Images className="w-4 h-4 mx-auto" />
-          </button>
-          <button
-            onClick={() => setSelectedType('reel')}
-            className={`flex-1 p-2 rounded-md transition-colors ${
-              selectedType === 'reel'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            <Film className="w-4 h-4 mx-auto" />
-          </button>
-        </div>
-
-        {/* Date Range Selector */}
-        <DateRangeSelector
-          startDate={startDate}
-          endDate={endDate}
-          onDateChange={onDateChange || (() => {})}
-          maxDays={90}
-        />
-      </div>}
-
-      {/* Desktop Filters - only shown after typewriter animation completes */}
-      {showContent && <div className="hidden sm:flex sm:items-center justify-between gap-4">
-        <div className="flex gap-2 bg-white/5 rounded-lg p-1">
-          <button
-            onClick={() => setSelectedType('all')}
-            className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-              selectedType === 'all'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            All Posts
-          </button>
-          <button
-            onClick={() => setSelectedType('image')}
-            className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-              selectedType === 'image'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            Images
-          </button>
-          <button
-            onClick={() => setSelectedType('carousel')}
-            className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-              selectedType === 'carousel'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            Carousels
-          </button>
-          <button
-            onClick={() => setSelectedType('reel')}
-            className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-              selectedType === 'reel'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400'
-            } ${isLoading ? 'cursor-not-allowed opacity-50' : 'hover:text-white'}`}
-            disabled={isLoading}
-          >
-            Reels
-          </button>
-        </div>
-
-        <DateRangeSelector
-          startDate={startDate}
-          endDate={endDate}
-          onDateChange={onDateChange || (() => {})}
-          maxDays={90}
-        />
-      </div>}
 
       {/* Only show PostList after typewriter animation completes */}
       {showContent && (
