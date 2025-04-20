@@ -1,18 +1,22 @@
 import React from 'react';
 import { Zap } from 'lucide-react';
-import { useSavedAnalytics } from '../../../../hooks/useSavedAnalytics';
 import { PostType } from '../../../../types/postType';
+import { useEngagementDistribution } from '../../../../hooks/useEngagementDistribution';
 
 interface SavedEngagementDistributionProps {
   handle: string;
   postType: PostType | 'all';
 }
 
-export const SavedEngagementDistribution: React.FC<SavedEngagementDistributionProps> = ({ 
+export const SavedEngagementDistribution: React.FC<SavedEngagementDistributionProps> = ({
   handle,
   postType
 }) => {
-  const { isLoading } = useSavedAnalytics(handle);
+  const { distributionData, isLoading, error } = useEngagementDistribution(
+    handle,
+    7,
+    postType === 'all' ? undefined : postType
+  );
 
   // Get gradient based on post type
   const getGradient = () => {
@@ -47,9 +51,18 @@ export const SavedEngagementDistribution: React.FC<SavedEngagementDistributionPr
     );
   }
 
-  const distributionData = [
-    { type: 'Likes', value: 75 },
-    { type: 'Comments', value: 25 }
+  if (error || !distributionData) {
+    return (
+      <div className="bg-white/5 rounded-xl p-6">
+        <div className="text-red-500">Failed to load engagement distribution data</div>
+      </div>
+    );
+  }
+
+  // Prepare data for rendering
+  const formattedDistributionData = [
+    { type: 'Likes', value: distributionData.likes },
+    { type: 'Comments', value: distributionData.comments }
   ];
 
   return (
@@ -62,14 +75,14 @@ export const SavedEngagementDistribution: React.FC<SavedEngagementDistributionPr
       </div>
 
       <div className="space-y-4">
-        {distributionData.map(({ type, value }) => (
+        {formattedDistributionData.map(({ type, value }) => (
           <div key={type}>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-400">{type}</span>
               <span className="text-white">{value}%</span>
             </div>
             <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-              <div 
+              <div
                 className={`h-full bg-gradient-to-r ${getGradient()}`}
                 style={{ width: `${value}%` }}
               />

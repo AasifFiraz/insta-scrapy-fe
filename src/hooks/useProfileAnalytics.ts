@@ -53,7 +53,6 @@ interface StatsData {
 interface UseProfileAnalyticsResult {
   profileData: ProfileData | null;
   growthData: GrowthDataPoint[];
-  engagementData: StatsData | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -62,7 +61,6 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
   const { timeRange } = useTimeRange();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [growthData, setGrowthData] = useState<GrowthDataPoint[]>([]);
-  const [engagementData, setEngagementData] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -111,16 +109,6 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
           }
         }
 
-        // Stats fetch
-        if (!statsRequestInProgress.current) {
-          statsRequestInProgress.current = true;
-          const statsResponse = await axiosInstance.get(`/profile/${handle}/stats`);
-          
-          if (isMounted.current) {
-            setEngagementData(statsResponse.data);
-          }
-        }
-
       } catch (err) {
         console.error('Error fetching analytics:', err);
         if (isMounted.current) {
@@ -153,13 +141,12 @@ export const useProfileAnalytics = (handle: string): UseProfileAnalyticsResult =
     console.log('Current state:', {
       profileData,
       growthData,
-      engagementData,
       isLoading,
       error
     });
-  }, [profileData, growthData, engagementData, isLoading, error]);
+  }, [profileData, growthData, isLoading, error]);
 
-  return { profileData, growthData, engagementData, isLoading, error };
+  return { profileData, growthData, isLoading, error };
 };
 
 export type { UseProfileAnalyticsResult, ProfileData, StatsData, GrowthDataPoint };

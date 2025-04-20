@@ -60,9 +60,18 @@ export interface InsightsResponse {
       value: number;
     };
     post_mix: {
-      carousels: number;
-      images: number;
-      reels: number;
+      carousels: {
+        count: number;
+        percentage_change: number;
+      };
+      images: {
+        count: number;
+        percentage_change: number;
+      };
+      reels: {
+        count: number;
+        percentage_change: number;
+      };
     };
     posting_frequency: {
       percentage_change: number;
@@ -172,10 +181,10 @@ export const fetchInsightsMetrics = async (
 ): Promise<InsightsMetrics> => {
   try {
     // Calculate days from endDate to startDate, default to 7 if not provided
-    const days = startDate && endDate 
+    const days = startDate && endDate
       ? Math.min(differenceInDays(endDate, startDate), 30) // Cap at 30 days
       : 7;
-    
+
     const insightsData = await getInsights(handle, days);
     return mapInsightsResponseToMetrics(insightsData);
   } catch (error) {
