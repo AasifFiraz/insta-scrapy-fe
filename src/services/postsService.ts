@@ -65,7 +65,26 @@ interface ProcessMediaResponse {
   success: boolean;
 }
 
+/**
+ * Checks if a string is already a base64 image
+ * @param url The URL or string to check
+ * @returns True if the string is already a base64 image
+ */
+export const isBase64Image = (url: string): boolean => {
+  return url?.startsWith('data:image');
+};
+
+/**
+ * Converts an image URL to base64 if it's not already in base64 format
+ * @param imageUrl The image URL to convert
+ * @returns The base64 string or original URL if conversion fails
+ */
 export const convertImageToBase64 = async (imageUrl: string): Promise<string> => {
+  // If the image is already a base64 string, return it as is
+  if (isBase64Image(imageUrl)) {
+    return imageUrl;
+  }
+
   try {
     const response = await axiosInstance.get('/proxy/image', {
       params: {
@@ -148,7 +167,7 @@ export const getPosts = async (
       try {
         // Convert the image first
         // const base64Image = await convertImageToBase64(post.thumbnail_image);
-        
+
         // Create the post object only after image conversion
         const readyPost: Post = {
           id: post.id,

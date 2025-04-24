@@ -78,6 +78,7 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
           endDate={endDate}
           onDateChange={onDateChange || (() => {})}
           maxDays={90}
+          isLoading={isLoading}
         />
       </div>
 
@@ -135,6 +136,7 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
           endDate={endDate}
           onDateChange={onDateChange || (() => {})}
           maxDays={90}
+          isLoading={isLoading}
         />
       </div>
     </div>

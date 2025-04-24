@@ -7,6 +7,7 @@ interface UseUserInformationResult {
   error: string | null;
   isTypingComplete: boolean;
   displayedText: string;
+  completeTyping: () => void; // New function to force complete the typing animation
 }
 
 export const useUserInformation = (handle: string): UseUserInformationResult => {
@@ -15,6 +16,7 @@ export const useUserInformation = (handle: string): UseUserInformationResult => 
   const [error, setError] = useState<string | null>(null);
   const [displayedText, setDisplayedText] = useState<string>('');
   const [isTypingComplete, setIsTypingComplete] = useState<boolean>(false);
+  const [forceComplete, setForceComplete] = useState<boolean>(false);
 
   // Fetch user information
   useEffect(() => {
@@ -34,9 +36,21 @@ export const useUserInformation = (handle: string): UseUserInformationResult => 
     fetchUserInformation();
   }, [handle]);
 
+  // Function to force complete the typing animation
+  const completeTyping = () => {
+    setForceComplete(true);
+  };
+
   // Typewriter effect
   useEffect(() => {
     if (!userInformation || isLoading) return;
+
+    // If force complete is triggered, immediately show the full text
+    if (forceComplete) {
+      setDisplayedText(userInformation);
+      setIsTypingComplete(true);
+      return;
+    }
 
     let currentIndex = 0;
     setIsTypingComplete(false);
@@ -55,13 +69,14 @@ export const useUserInformation = (handle: string): UseUserInformationResult => 
     }, 20); // Adjust typing speed as needed
 
     return () => clearInterval(typingInterval);
-  }, [userInformation, isLoading]);
+  }, [userInformation, isLoading, forceComplete]);
 
   return {
     userInformation,
     isLoading,
     error,
     isTypingComplete,
-    displayedText
+    displayedText,
+    completeTyping
   };
 };

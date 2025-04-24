@@ -1,18 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProfileAvatar } from './ProfileAvatar';
 import { ProfileInfo } from './ProfileInfo';
 import { ProfileTabs } from './ProfileTabs';
 import { SaveProfileButton } from '../../common/SaveProfileButton';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { UserX } from 'lucide-react';
+import { convertImageToBase64 } from '../../../services/postsService';
 
 interface ProfileHeaderProps {
   handle: string;
   analytics: UseProfileAnalyticsResult;
+  isApiLoading?: boolean;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics, isApiLoading = false }) => {
   const { profileData, isLoading, error } = analytics;
+  const [profilePicBase64, setProfilePicBase64] = useState<string>('');
+
+  // Convert profile picture to base64 if needed
+  useEffect(() => {
+    if (profileData?.profilePic) {
+      const loadProfilePic = async () => {
+        try {
+          const base64Image = await convertImageToBase64(profileData.profilePic);
+          setProfilePicBase64(base64Image);
+        } catch (error) {
+          console.error('Error converting profile picture to base64:', error);
+          // Fallback to original URL if conversion fails
+          setProfilePicBase64(profileData.profilePic);
+        }
+      };
+
+      loadProfilePic();
+    }
+  }, [profileData]);
 
   if (error?.includes('Profile fetch failed') || analytics?.error?.includes('NOT FOUND')) {
     return (
@@ -54,13 +75,13 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics 
 
   const profile = {
     id: 1,
-    avatar: profileData.profilePic,
-    name: profileData.fullName,
-    handle: profileData.username,
-    subscribers: profileData.followers || 0,
-    videos: profileData.posts || 0,
+    avatar: profilePicBase64 || profileData?.profilePic || '',
+    name: profileData?.fullName || '',
+    handle: profileData?.username || '',
+    subscribers: String(profileData?.followers || 0),
+    videos: String(profileData?.posts || 0),
     views: '0', // This could be calculated from actual data if available
-    description: profileData.biography
+    description: profileData?.biography || ''
   };
 
   return (
@@ -68,8 +89,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics 
       <div className="flex flex-col items-center sm:items-stretch sm:flex-row sm:gap-6">
         {/* Avatar */}
         <div className="flex justify-center sm:justify-start mb-4 sm:mb-0">
-          <ProfileAvatar 
-            src={profile.avatar} 
+          <ProfileAvatar
+            src={profile.avatar}
             alt={profile.name}
             size="lg"
           />
@@ -88,7 +109,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics 
 
       {/* Tabs */}
       <div className="mt-4 sm:mt-6">
-        <ProfileTabs handle={handle} />
+        <ProfileTabs isApiLoading={isApiLoading} />
       </div>
     </div>
   );

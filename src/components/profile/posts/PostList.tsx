@@ -28,12 +28,12 @@ type PopupContent = {
   type: 'post' | 'caption' | 'postStructure' | 'captionStructure';
   text: string;
   postType: string;
-  title: string;  
+  title: string;
   isLoading?: boolean;
 }
 
-export const PostList: React.FC<PostListProps> = ({ 
-  posts, 
+export const PostList: React.FC<PostListProps> = ({
+  posts,
   postType = 'all',
   startDate,
   endDate,
@@ -52,13 +52,15 @@ export const PostList: React.FC<PostListProps> = ({
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'desc' });
 
-  // Show loading skeleton when loading
+  // Show loading message when loading
   if (isLoading) {
     return (
-      <div className="grid gap-4 grid-cols-1">
-        {Array.from({ length: 20 }).map((_, index) => (
-          <PostSkeleton key={index} />
-        ))}
+      <div className="space-y-6">
+        {/* Informative message about posts loading */}
+        <div className="bg-white/5 rounded-xl p-6 text-center">
+          <p className="text-white mb-3">Posts are currently being fetched, please give it a few minutes and come back.</p>
+          <p className="text-gray-400 text-sm">We're retrieving and analyzing the latest posts from this profile.</p>
+        </div>
       </div>
     );
   }
@@ -67,12 +69,12 @@ export const PostList: React.FC<PostListProps> = ({
   if (posts.length === 0) {
     return (
       <>
-        <EmptyState 
+        <EmptyState
           postType={postType}
           startDate={startDate}
           endDate={endDate}
         />
-        
+
         {/* Show pagination only if not on page 1 or explicitly told to show it */}
         {(currentPage > 1 && showPagination) && (
           <div className="flex items-center justify-center gap-3 mt-6">
@@ -110,7 +112,7 @@ export const PostList: React.FC<PostListProps> = ({
   const getSortedPosts = () => {
     if (!sortConfig.key) return posts;
 
-    const sortKey = sortConfig.key === 'posted' ? 'createdAt' : 
+    const sortKey = sortConfig.key === 'posted' ? 'createdAt' :
                    sortConfig.key === 'likes' ? 'stats.likes' :
                    sortConfig.key === 'comments' ? 'stats.comments' :
                    sortConfig.key;
@@ -122,14 +124,14 @@ export const PostList: React.FC<PostListProps> = ({
 
   const SortIcon = ({ columnKey }: { columnKey: typeof sortConfig.key }) => {
     if (sortConfig.key !== columnKey) return null;
-    return sortConfig.direction === 'desc' ? 
-      <ArrowDown className="w-4 h-4 inline-block ml-1" /> : 
+    return sortConfig.direction === 'desc' ?
+      <ArrowDown className="w-4 h-4 inline-block ml-1" /> :
       <ArrowUp className="w-4 h-4 inline-block ml-1" />;
   };
 
   const handleCopy = async () => {
     if (!selectedContent) return;
-    
+
     try {
       await navigator.clipboard.writeText(selectedContent.text);
       setCopied(true);
@@ -158,7 +160,7 @@ export const PostList: React.FC<PostListProps> = ({
           try {
             // Process media to get extracted text
             const extractedText = await processPostMedia(post.media);
-            
+
             // Update with extracted text
             setSelectedContent({
               type,
@@ -213,7 +215,7 @@ export const PostList: React.FC<PostListProps> = ({
             post.copy.caption,
             post.context
           );
-          
+
           // Update with generated content
           setSelectedContent({
             type,
@@ -235,7 +237,7 @@ export const PostList: React.FC<PostListProps> = ({
           return;
         }
     }
-    
+
     // if (type !== 'post') {
       setSelectedContent({ type, text, postType: post.type, title });
     // }
@@ -249,37 +251,37 @@ export const PostList: React.FC<PostListProps> = ({
           <thead>
             <tr className="text-gray-400 text-sm border-b border-white/10">
               <th className="pb-3 font-medium w-[350px]">Title</th>
-              <th 
+              <th
                 className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('posted')}
               >
                 Posted <SortIcon columnKey="posted" />
               </th>
-              <th 
+              <th
                 className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('topic')}
               >
                 Topic <SortIcon columnKey="topic" />
               </th>
-              <th 
+              <th
                 className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('goal')}
               >
                 Goal <SortIcon columnKey="goal" />
               </th>
-              <th 
+              <th
                 className="pb-3 font-medium cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('angle')}
               >
                 Angle <SortIcon columnKey="angle" />
               </th>
-              <th 
+              <th
                 className="pb-3 font-medium text-center cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('likes')}
               >
                 Likes <SortIcon columnKey="likes" />
               </th>
-              <th 
+              <th
                 className="pb-3 font-medium text-center cursor-pointer hover:text-white transition-colors"
                 onClick={() => handleSort('comments')}
               >
@@ -293,12 +295,12 @@ export const PostList: React.FC<PostListProps> = ({
               <tr key={post.id} className="border-b border-white/5">
                 <td className="py-4 pr-4">
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={post.thumbnail} 
+                    <img
+                      src={post.thumbnail}
                       alt={post.caption}
                       className="w-12 h-12 rounded object-cover"
                     />
-                    <a 
+                    <a
                       href={post.post_link}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -371,7 +373,7 @@ export const PostList: React.FC<PostListProps> = ({
               disabled={!hasPreviousPage || isLoading}
               className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
                 hasPreviousPage && !isLoading
-                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  ? 'bg-white/10 hover:bg-white/20 text-white'
                   : 'bg-white/5 text-gray-500 cursor-not-allowed'
               }`}
               aria-label="Previous page"
@@ -390,7 +392,7 @@ export const PostList: React.FC<PostListProps> = ({
               disabled={!hasNextPage || isLoading}
               className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
                 hasNextPage && !isLoading
-                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  ? 'bg-white/10 hover:bg-white/20 text-white'
                   : 'bg-white/5 text-gray-500 cursor-not-allowed'
               }`}
               aria-label="Next page"
@@ -481,7 +483,7 @@ export const PostList: React.FC<PostListProps> = ({
               disabled={!hasPreviousPage || isLoading}
               className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
                 hasPreviousPage && !isLoading
-                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  ? 'bg-white/10 hover:bg-white/20 text-white'
                   : 'bg-white/5 text-gray-500 cursor-not-allowed'
               }`}
               aria-label="Previous page"
@@ -500,7 +502,7 @@ export const PostList: React.FC<PostListProps> = ({
               disabled={!hasNextPage || isLoading}
               className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
                 hasNextPage && !isLoading
-                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  ? 'bg-white/10 hover:bg-white/20 text-white'
                   : 'bg-white/5 text-gray-500 cursor-not-allowed'
               }`}
               aria-label="Next page"

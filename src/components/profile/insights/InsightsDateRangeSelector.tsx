@@ -6,12 +6,14 @@ interface InsightsDateRangeSelectorProps {
   startDate: Date | null | undefined;
   endDate: Date | null | undefined;
   onDateChange: (start: Date | null, end: Date | null) => void;
+  isLoading?: boolean;
 }
 
 export const InsightsDateRangeSelector: React.FC<InsightsDateRangeSelectorProps> = ({
   startDate,
   endDate,
-  onDateChange
+  onDateChange,
+  isLoading = false
 }) => {
   // Custom date change handler to enforce 30-day limit
   const handleDateChange = (start: Date | null, end: Date | null) => {
@@ -34,6 +36,7 @@ export const InsightsDateRangeSelector: React.FC<InsightsDateRangeSelectorProps>
       startDate={startDate}
       endDate={endDate}
       onDateChange={handleDateChange}
+      isLoading={isLoading}
     />
   );
-}; 
+};

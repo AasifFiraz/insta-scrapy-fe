@@ -26,12 +26,14 @@ interface ProfileTabsProps {
   startDate?: Date | null;
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
+  isApiLoading?: boolean;
 }
 
 export const ProfileTabs: React.FC<ProfileTabsProps> = ({
   startDate,
   endDate,
-  onDateChange
+  onDateChange,
+  isApiLoading = false
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabId) || 'analytics';
@@ -41,6 +43,10 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
   const handleTabClick = (tabId: TabId) => {
     // Only allow switching to posts if authenticated
     if (!isAuthenticated && tabId === 'posts') {
+      return;
+    }
+    // Prevent tab switching during API calls
+    if (isApiLoading && activeTab === 'posts') {
       return;
     }
     setSearchParams({ tab: tabId });
@@ -58,7 +64,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
         {/* Tab buttons */}
         <div className="flex gap-2 bg-white/5 rounded-lg p-1">
           {TABS.map(({ id, label, icon: Icon, isPro }) => {
-            const isDisabled = !isAuthenticated && id === 'posts';
+            const isDisabled = (!isAuthenticated && id === 'posts') || (isApiLoading && activeTab === 'posts' && id === 'analytics');
             return (
               <button
                 key={id}
@@ -103,7 +109,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
       <div className="hidden sm:flex items-center justify-between">
         <div className="flex items-center gap-2">
           {TABS.map(({ id, label, icon: Icon, isPro }) => {
-            const isDisabled = !isAuthenticated && id === 'posts';
+            const isDisabled = (!isAuthenticated && id === 'posts') || (isApiLoading && activeTab === 'posts' && id === 'analytics');
             return (
               <button
                 key={id}
@@ -131,7 +137,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
             );
           })}
         </div>
-        
+
         {/* Desktop Filters */}
         <div className="flex items-center gap-4">
           {showTimeRange && (
@@ -146,6 +152,7 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
               endDate={endDate}
               onDateChange={onDateChange}
               maxDays={90}
+              isLoading={isApiLoading}
             />
           )}
         </div>

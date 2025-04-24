@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Post } from '../types/post';
 import { PostType } from '../types/postType';
 import { getPosts } from '../services/postsService';
+import { getInsights } from '../services/insightsService';
 import { differenceInDays } from 'date-fns';
 
 interface UsePostsProps {
@@ -31,7 +32,9 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
   });
   // Track if we've reached the end of available posts (received empty array)
   const [reachedEnd, setReachedEnd] = useState(false);
-  
+  // Track if the next button was clicked
+  const [isNextPageClick, setIsNextPageClick] = useState(false);
+
   // Reset pagination when postType changes
   useEffect(() => {
     setCurrentPage(1);
@@ -46,7 +49,7 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
         setPosts([]); // Reset posts when fetching new ones
 
         // Calculate days from endDate to startDate, default to 7 if not provided
-        const days = startDate && endDate 
+        const days = startDate && endDate
           ? differenceInDays(endDate, startDate)
           : 7;
 
@@ -67,7 +70,7 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
 
         // Fetch posts with progressive loading
         const response = await getPosts(handle, days, type, currentPage, handlePostReady);
-        
+
         // Update reached end flag if we get an empty array
         if (response.posts.length === 0 && currentPage > 1) {
           setReachedEnd(true);
@@ -75,7 +78,7 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
           // If we get posts, we haven't reached the end
           setReachedEnd(false);
         }
-        
+
         setPosts(response.posts);
         setPagination({
           page: response.pagination.page,
@@ -84,18 +87,36 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
           totalPages: response.pagination.total_pages
         });
         setIsLoading(false);
+
+        // After successful posts API call, check if we need to call insights API
+        if (isNextPageClick) {
+          try {
+            // Call the insights API with the same days parameter
+            await getInsights(handle, days, type);
+          } catch (insightsErr) {
+            console.error('Error fetching insights after pagination:', insightsErr);
+            // We don't set an error state here as we don't want to affect the posts display
+          } finally {
+            // Reset the next page click flag
+            setIsNextPageClick(false);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch posts');
         setIsLoading(false);
+        // Reset the next page click flag if there was an error
+        setIsNextPageClick(false);
       }
     };
 
     fetchPosts();
-  }, [handle, postType, startDate, endDate, currentPage]);
+  }, [handle, postType, startDate, endDate, currentPage, isNextPageClick]);
 
   const goToNextPage = useCallback(() => {
     // Allow moving to the next page if we haven't explicitly reached the end
     if (!reachedEnd) {
+      // Set the flag to indicate that the next button was clicked
+      setIsNextPageClick(true);
       setCurrentPage(prev => prev + 1);
     }
   }, [reachedEnd]);
@@ -108,17 +129,17 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
 
   // Should we show pagination controls? Hide them if no posts on page 1
   const showPagination = !(posts.length === 0 && currentPage === 1);
-  
+
   // Determine if Next button should be enabled
   // Only disable Next if we've received an empty array (reached end)
   const hasNextPage = !reachedEnd;
-  
+
   // Has previous page if we're not on page 1
   const hasPreviousPage = currentPage > 1;
 
-  return { 
-    posts, 
-    isLoading, 
+  return {
+    posts,
+    isLoading,
     error,
     pagination,
     currentPage,
@@ -128,4 +149,4 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
     hasPreviousPage,
     showPagination
   };
-}; 
+};

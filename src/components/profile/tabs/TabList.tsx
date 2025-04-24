@@ -15,16 +15,18 @@ const TABS = [
 
 type TabId = typeof TABS[number]['id'];
 
-export const TabList: React.FC<{ 
+export const TabList: React.FC<{
   handle: string;
   startDate?: Date | null;
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
-}> = ({ 
-  handle, 
-  startDate, 
-  endDate, 
-  onDateChange 
+  isApiLoading?: boolean;
+}> = ({
+  handle,
+  startDate,
+  endDate,
+  onDateChange,
+  isApiLoading = false
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') as TabId) || 'analytics';
@@ -99,6 +101,7 @@ export const TabList: React.FC<{
           endDate={endDate}
           onDateChange={onDateChange}
           maxDays={undefined}
+          isLoading={isApiLoading}
         />
       )}
     </div>

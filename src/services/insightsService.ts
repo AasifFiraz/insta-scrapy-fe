@@ -133,6 +133,13 @@ export const mapInsightsResponseToMetrics = (data: InsightsResponse): InsightsMe
     }
   };
 
+  // Extract post_mix data if available
+  const postMix = insights.post_mix ? {
+    carousels: insights.post_mix.carousels,
+    images: insights.post_mix.images,
+    reels: insights.post_mix.reels
+  } : undefined;
+
   return {
     followers: {
       total: safeGet<number>(insights, ['new_followers', 'value'], 0),
@@ -169,7 +176,8 @@ export const mapInsightsResponseToMetrics = (data: InsightsResponse): InsightsMe
       ctaChange: 0, // Not provided in the API response
       readingLevel: safeGet<string>(insights, ['reading_level', 'value'], '0'),
       readingLevelChange: 0 // Not provided in the API response
-    }
+    },
+    postMix
   };
 };
 

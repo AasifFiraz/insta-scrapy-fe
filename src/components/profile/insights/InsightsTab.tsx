@@ -16,14 +16,14 @@ interface InsightsTabProps {
   analytics: UseProfileAnalyticsResult;
 }
 
-export const InsightsTab: React.FC<InsightsTabProps> = ({ 
+export const InsightsTab: React.FC<InsightsTabProps> = ({
   handle,
   startDate,
   endDate,
   onDateChange,
 }) => {
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
-  
+
   // Ensure date range is not more than 30 days for insights
   useEffect(() => {
     if (startDate && endDate && onDateChange) {
@@ -66,7 +66,7 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
   // Custom date change handler to enforce 30-day limit
   const handleDateChange = (start: Date | null, end: Date | null) => {
     if (!onDateChange) return;
-    
+
     if (start && end) {
       const days = differenceInDays(end, start);
       if (days > 30) {
@@ -135,6 +135,7 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
           endDate={endDate}
           onDateChange={handleDateChange}
           maxDays={90}
+          isLoading={false}
         />
       </div>
 
@@ -187,6 +188,7 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
           endDate={endDate}
           onDateChange={handleDateChange}
           maxDays={90}
+          isLoading={false}
         />
       </div>
 
@@ -196,7 +198,7 @@ export const InsightsTab: React.FC<InsightsTabProps> = ({
       </div>
 
       {/* Analytics Components */}
-      <SavedAnalytics 
+      <SavedAnalytics
         handle={handle}
         startDate={startDate}
         endDate={endDate}

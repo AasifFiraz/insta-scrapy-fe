@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AnalyticsTab } from '../analytics/AnalyticsTab';
 import { PostsTab } from '../posts/PostsTab';
@@ -14,6 +14,7 @@ interface TabContentProps {
   endDate?: Date | null;
   onDateChange?: (start: Date | null, end: Date | null) => void;
   analytics: UseProfileAnalyticsResult;
+  onApiLoadingChange?: (isLoading: boolean) => void;
 }
 
 export const TabContent: React.FC<TabContentProps> = ({
@@ -22,10 +23,19 @@ export const TabContent: React.FC<TabContentProps> = ({
   startDate,
   endDate,
   onDateChange,
-  analytics
+  analytics,
+  onApiLoadingChange
 }) => {
   const { isAuthenticated } = useAuth();
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
+  const [isApiLoading, setIsApiLoading] = useState<boolean>(false);
+
+  // Notify parent component about API loading state changes
+  useEffect(() => {
+    if (onApiLoadingChange) {
+      onApiLoadingChange(isApiLoading);
+    }
+  }, [isApiLoading, onApiLoadingChange]);
 
   // If user is not authenticated and tries to access protected tabs,
   // redirect to analytics tab
@@ -50,6 +60,7 @@ export const TabContent: React.FC<TabContentProps> = ({
                   startDate={startDate}
                   endDate={endDate}
                   onDateChange={onDateChange}
+                  isLoading={isApiLoading}
                 />
 
                 {/* Posts Tab Content */}
@@ -60,6 +71,7 @@ export const TabContent: React.FC<TabContentProps> = ({
                   onDateChange={onDateChange}
                   selectedType={selectedType}
                   onTypeChange={setSelectedType}
+                  onLoadingStateChange={setIsApiLoading}
                 />
               </>
             );

@@ -1,3 +1,18 @@
+export interface PostMixData {
+  carousels: {
+    count: number;
+    percentage_change: number;
+  };
+  images: {
+    count: number;
+    percentage_change: number;
+  };
+  reels: {
+    count: number;
+    percentage_change: number;
+  };
+}
+
 export interface InsightsMetrics {
   followers: {
     total: number;
@@ -35,4 +50,5 @@ export interface InsightsMetrics {
     readingLevel: string;
     readingLevelChange: number;
   };
+  postMix?: PostMixData;
 }

@@ -5,6 +5,7 @@ import { PostAnalysis } from './PostAnalysis';
 import { TopicAnalysis } from './topics/TopicAnalysis';
 import { useSavedAnalytics } from '../../../../hooks/useSavedAnalytics';
 import { PostType } from '../../../../types/postType';
+import { useInsights } from '../../../../context/InsightsContext';
 
 interface SavedAnalyticsProps {
   handle: string;
@@ -13,21 +14,15 @@ interface SavedAnalyticsProps {
   postType: PostType | 'all';
 }
 
-export const SavedAnalytics: React.FC<SavedAnalyticsProps> = ({ 
+export const SavedAnalytics: React.FC<SavedAnalyticsProps> = ({
   handle,
   startDate,
   endDate,
   postType
 }) => {
-  const { isLoading } = useSavedAnalytics(handle, startDate, endDate);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        {/* Loading states... */}
-      </div>
-    );
-  }
+  // We don't need to check loading state here as it's already handled by the parent InsightsContent component
+  // The SavedPostTypeAnalysis and SavedEngagementDistribution components handle their own loading states
+  const { data } = useSavedAnalytics(handle, startDate, endDate);
 
   return (
     <div className="space-y-6">
@@ -35,23 +30,26 @@ export const SavedAnalytics: React.FC<SavedAnalyticsProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
-            <SavedPostTypeAnalysis handle={handle} postType={postType} />
+            <SavedPostTypeAnalysis />
           </div>
           <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
-            <SavedEngagementDistribution handle={handle} postType={postType} />
+            <SavedEngagementDistribution />
           </div>
         </div>
+        {/* Post Analysis - Commented out as requested
         <div className="space-y-6">
           <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
             <PostAnalysis handle={handle} postType={postType} />
           </div>
         </div>
+        */}
       </div>
 
-      {/* Topic Analysis */}
+      {/* Topic Analysis - Commented out as requested
       <div className="px-4 -mx-4 sm:px-0 sm:mx-0">
         <TopicAnalysis handle={handle} postType={postType} />
       </div>
+      */}
     </div>
   );
 };

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookmarkPlus, Bookmark } from 'lucide-react';
 import { useSavedProfilesContext } from '../../context/SavedProfilesContext';
+import { convertImageToBase64 } from '../../services/postsService';
 
 interface SearchResultProps {
   username: string;
@@ -10,7 +11,7 @@ interface SearchResultProps {
   onSelect: () => void;
 }
 
-export const SearchResult: React.FC<SearchResultProps> = ({ 
+export const SearchResult: React.FC<SearchResultProps> = ({
   username,
   fullName,
   profilePic,
@@ -19,6 +20,7 @@ export const SearchResult: React.FC<SearchResultProps> = ({
 }) => {
   const { isProfileSaved, saveProfile, unsaveProfile } = useSavedProfilesContext();
   const isSaved = isProfileSaved(username);
+  const [profilePicBase64, setProfilePicBase64] = useState<string>(profilePic);
 
   const handleClick = () => {
     onSelect()
@@ -32,8 +34,26 @@ export const SearchResult: React.FC<SearchResultProps> = ({
       saveProfile(username);
     }
   };
+
+  // Convert profile picture to base64 if needed
+  useEffect(() => {
+    if (profilePic) {
+      const loadProfilePic = async () => {
+        try {
+          const base64Image = await convertImageToBase64(profilePic);
+          setProfilePicBase64(base64Image);
+        } catch (error) {
+          console.error('Error converting profile picture to base64:', error);
+          // Fallback to original URL if conversion fails
+          setProfilePicBase64(profilePic);
+        }
+      };
+
+      loadProfilePic();
+    }
+  }, [profilePic]);
   return (
-    <div 
+    <div
       onClick={handleClick}
       className={`relative w-full p-2 rounded-lg flex items-center justify-between group cursor-pointer transition-all ${
         isSelected ? 'bg-gray-50' : 'hover:bg-gray-50'
@@ -50,9 +70,9 @@ export const SearchResult: React.FC<SearchResultProps> = ({
       </div>
 
       <div className="flex items-center gap-3 relative">
-        <img 
-          src={profilePic}
-          alt={fullName} 
+        <img
+          src={profilePicBase64}
+          alt={fullName}
           className="w-10 h-10 rounded-full object-cover"
         />
         <div className="min-w-0">
@@ -63,11 +83,11 @@ export const SearchResult: React.FC<SearchResultProps> = ({
         </div>
       </div>
 
-      <button 
+      <button
         onClick={handleSave}
         className={`p-2 rounded-lg transition-colors relative ${
-          isSaved 
-            ? 'text-purple-500 bg-purple-500/10' 
+          isSaved
+            ? 'text-purple-500 bg-purple-500/10'
             : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
         }`}
       >

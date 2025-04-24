@@ -1,38 +1,16 @@
 import React from 'react';
 import { Zap } from 'lucide-react';
-import { PostType } from '../../../../types/postType';
-import { useEngagementDistribution } from '../../../../hooks/useEngagementDistribution';
+import { useInsights } from '../../../../context/InsightsContext';
 
-interface SavedEngagementDistributionProps {
-  handle: string;
-  postType: PostType | 'all';
-}
+export const SavedEngagementDistribution: React.FC = () => {
+  const { metrics, isLoading } = useInsights();
 
-export const SavedEngagementDistribution: React.FC<SavedEngagementDistributionProps> = ({
-  handle,
-  postType
-}) => {
-  const { distributionData, isLoading, error } = useEngagementDistribution(
-    handle,
-    7,
-    postType === 'all' ? undefined : postType
-  );
-
-  // Get gradient based on post type
+  // Default gradient for engagement distribution
   const getGradient = () => {
-    switch (postType) {
-      case 'all':
-        return 'from-purple-500 via-pink-500 to-emerald-500';
-      case 'image':
-        return 'from-purple-500 to-pink-500';
-      case 'carousel':
-        return 'from-blue-500 to-cyan-500';
-      case 'reel':
-        return 'from-emerald-500 to-teal-500';
-    }
+    return 'from-purple-500 via-pink-500 to-emerald-500';
   };
 
-  if (isLoading) {
+  if (isLoading || !metrics) {
     return (
       <div className="bg-white/5 rounded-xl p-6">
         <div className="animate-pulse space-y-4">
@@ -51,18 +29,14 @@ export const SavedEngagementDistribution: React.FC<SavedEngagementDistributionPr
     );
   }
 
-  if (error || !distributionData) {
-    return (
-      <div className="bg-white/5 rounded-xl p-6">
-        <div className="text-red-500">Failed to load engagement distribution data</div>
-      </div>
-    );
-  }
+  // Calculate engagement distribution percentages
+  const totalEngagement = metrics.engagement.likes + metrics.engagement.comments;
+  const likesPercentage = totalEngagement > 0 ? Math.round((metrics.engagement.likes / totalEngagement) * 100) : 0;
+  const commentsPercentage = totalEngagement > 0 ? Math.round((metrics.engagement.comments / totalEngagement) * 100) : 0;
 
-  // Prepare data for rendering
-  const formattedDistributionData = [
-    { type: 'Likes', value: distributionData.likes },
-    { type: 'Comments', value: distributionData.comments }
+  const distributionData = [
+    { type: 'Likes', value: likesPercentage },
+    { type: 'Comments', value: commentsPercentage }
   ];
 
   return (
@@ -75,7 +49,7 @@ export const SavedEngagementDistribution: React.FC<SavedEngagementDistributionPr
       </div>
 
       <div className="space-y-4">
-        {formattedDistributionData.map(({ type, value }) => (
+        {distributionData.map(({ type, value }) => (
           <div key={type}>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-400">{type}</span>

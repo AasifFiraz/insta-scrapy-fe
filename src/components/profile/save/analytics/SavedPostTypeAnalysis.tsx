@@ -1,20 +1,12 @@
 import React from 'react';
 import { PieChart } from 'lucide-react';
-import { PostType } from '../../../../types/postType';
-import { usePostMixData } from '../../../../hooks/usePostMixData';
+import { useInsights } from '../../../../context/InsightsContext';
 
-interface SavedPostTypeAnalysisProps {
-  handle: string;
-  postType: PostType | 'all';
-}
+export const SavedPostTypeAnalysis: React.FC = () => {
+  // Use the shared context instead of making a separate API call
+  const { metrics, isLoading } = useInsights();
 
-export const SavedPostTypeAnalysis: React.FC<SavedPostTypeAnalysisProps> = ({
-  handle,
-  postType
-}) => {
-  const { postMixData, isLoading, error } = usePostMixData(handle, 7, postType === 'all' ? undefined : postType);
-
-  if (isLoading) {
+  if (isLoading || !metrics || !metrics.postMix) {
     return (
       <div className="bg-white/5 rounded-xl p-6">
         <div className="animate-pulse space-y-4">
@@ -35,13 +27,10 @@ export const SavedPostTypeAnalysis: React.FC<SavedPostTypeAnalysisProps> = ({
     );
   }
 
-  if (error || !postMixData) {
-    return (
-      <div className="bg-white/5 rounded-xl p-6">
-        <div className="text-red-500">Failed to load post mix data</div>
-      </div>
-    );
-  }
+  const { postMix } = metrics;
+
+  // Calculate total posts
+  const totalPosts = postMix.carousels.count + postMix.images.count + postMix.reels.count;
 
   const colors = {
     image: 'from-purple-500 to-pink-500',
@@ -49,25 +38,22 @@ export const SavedPostTypeAnalysis: React.FC<SavedPostTypeAnalysisProps> = ({
     reel: 'from-emerald-500 to-teal-500'
   };
 
-  // Calculate total posts
-  const totalPosts = postMixData.carousels.count + postMixData.images.count + postMixData.reels.count;
-
-  // Prepare data for rendering
+  // Create post type data for rendering
   const postTypes = [
     {
       type: 'carousel',
-      count: postMixData.carousels.count,
-      percentageChange: postMixData.carousels.percentage_change
+      count: postMix.carousels.count,
+      percentage_change: postMix.carousels.percentage_change
     },
     {
       type: 'image',
-      count: postMixData.images.count,
-      percentageChange: postMixData.images.percentage_change
+      count: postMix.images.count,
+      percentage_change: postMix.images.percentage_change
     },
     {
       type: 'reel',
-      count: postMixData.reels.count,
-      percentageChange: postMixData.reels.percentage_change
+      count: postMix.reels.count,
+      percentage_change: postMix.reels.percentage_change
     }
   ];
 
@@ -81,7 +67,7 @@ export const SavedPostTypeAnalysis: React.FC<SavedPostTypeAnalysisProps> = ({
       </div>
 
       <div className="space-y-4">
-        {postTypes.map(({ type, count, percentageChange }) => (
+        {postTypes.map(({ type, count, percentage_change }) => (
           <div key={type}>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-400 capitalize">{type}s</span>
@@ -89,9 +75,9 @@ export const SavedPostTypeAnalysis: React.FC<SavedPostTypeAnalysisProps> = ({
                 <span className="text-gray-400">{count} posts</span>
                 <div className="flex items-baseline gap-2">
                   <span className={`text-sm ${
-                    percentageChange >= 0 ? 'text-emerald-500' : 'text-red-500'
+                    percentage_change >= 0 ? 'text-emerald-500' : 'text-red-500'
                   }`}>
-                    {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(1)}%
+                    {percentage_change >= 0 ? '+' : ''}{percentage_change.toFixed(1)}%
                   </span>
                 </div>
               </div>

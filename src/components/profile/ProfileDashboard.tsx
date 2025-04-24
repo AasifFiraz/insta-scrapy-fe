@@ -7,26 +7,32 @@ import { useTimelineFilter } from '../../hooks/useTimelineFilter';
 import { useProfileAnalytics } from '../../hooks/useProfileAnalytics';
 
 // Create a separate component for the content that needs TimeRange context
-const ProfileContent: React.FC<{ 
+const ProfileContent: React.FC<{
   handle: string;
   activeTab: string;
   startDate: Date | null;
   endDate: Date | null;
   onDateChange: (start: Date | null, end: Date | null) => void;
 }> = ({ handle, activeTab, startDate, endDate, onDateChange }) => {
+  const [isApiLoading, setIsApiLoading] = React.useState<boolean>(false);
   const analytics = useProfileAnalytics(handle);
   const memoizedAnalytics = useMemo(() => analytics, [analytics]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <ProfileHeader handle={handle} analytics={memoizedAnalytics} />
-      <TabContent 
-        activeTab={activeTab} 
+      <ProfileHeader
+        handle={handle}
+        analytics={memoizedAnalytics}
+        isApiLoading={isApiLoading}
+      />
+      <TabContent
+        activeTab={activeTab}
         handle={handle}
         startDate={startDate}
         endDate={endDate}
         onDateChange={onDateChange}
         analytics={memoizedAnalytics}
+        onApiLoadingChange={setIsApiLoading}
       />
     </div>
   );
@@ -36,7 +42,7 @@ export const ProfileDashboard: React.FC = () => {
   const { handle } = useParams<{ handle: string }>();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'analytics';
-  
+
   const {
     timeRange,
     startDate,
