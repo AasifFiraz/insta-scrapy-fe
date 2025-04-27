@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Mail, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAppDispatch } from '../../store/hooks';
+import { forgotPassword } from '../../store/features/auth/authThunks';
 
 export const ForgotPassword: React.FC = () => {
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -10,7 +13,24 @@ export const ForgotPassword: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission logic will be implemented later
+
+    if (!email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await dispatch(forgotPassword({ email: email.trim() })).unwrap();
+      setSuccess(true);
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Failed to send reset instructions. Please try again.');
+      console.error('Forgot password error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -29,7 +49,7 @@ export const ForgotPassword: React.FC = () => {
               {error}
             </div>
           )}
-          
+
           {success ? (
             <div className="text-center">
               <div className="mb-4 p-3 rounded bg-green-500/10 border border-green-500/20 text-green-500 text-sm">
@@ -90,4 +110,4 @@ export const ForgotPassword: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { signup, login, checkAuth } from './authThunks';
+import { signup, login, checkAuth, forgotPassword, resetPassword } from './authThunks';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -92,10 +92,36 @@ export const authSlice = createSlice({
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
         }
+      })
+      // Forgot Password
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Reset Password
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
 export const { logout, clearError } = authSlice.actions;
 
-export default authSlice.reducer; 
+export default authSlice.reducer;

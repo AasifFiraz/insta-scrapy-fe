@@ -15,6 +15,15 @@ interface SignupCredentials {
   password: string;
 }
 
+interface ForgotPasswordRequest {
+  email: string;
+}
+
+interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
 interface AuthResponse {
   user: {
     id: string;
@@ -48,14 +57,14 @@ export const signup = createAsyncThunk(
   async (credentials: SignupCredentials, { dispatch, rejectWithValue }) => {
     try {
       const response = await axiosInstance.post<AuthResponse>('/signup', credentials);
-      
+
       // Store tokens
       localStorage.setItem('accessToken', response.data.access_token);
       localStorage.setItem('refreshToken', response.data.refresh_token);
-      
+
       // Update user profile in the user slice
       dispatch(fetchProfileSuccess(response.data.user));
-      
+
       return response.data;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response?.data) {
@@ -71,14 +80,14 @@ export const login = createAsyncThunk(
   async (credentials: LoginCredentials, { dispatch, rejectWithValue }) => {
     try {
       const response = await axiosInstance.post<AuthResponse>('/login', credentials);
-      
+
       // Store tokens
       localStorage.setItem('accessToken', response.data.access_token);
       localStorage.setItem('refreshToken', response.data.refresh_token);
-      
+
       // Update user profile in the user slice
       dispatch(fetchProfileSuccess(response.data.user));
-      
+
       return response.data;
     } catch (error: unknown) {
       if (isAxiosError(error) && error.response?.data) {
@@ -108,16 +117,16 @@ export const checkAuth = createAsyncThunk(
         '/refresh-token',
         { refresh_token }
       );
-      
+
       console.log('Refresh response:', response.data);
-      
+
       // Store both tokens
       localStorage.setItem('accessToken', response.data.access_token);
       localStorage.setItem('refreshToken', response.data.refresh_token);
-      
+
       // Make sure to update the user profile in the store
       dispatch(fetchProfileSuccess(response.data.user));
-      
+
       return response.data;
     } catch (error: unknown) {
       console.error('Refresh token error:', error);
@@ -133,4 +142,34 @@ export const checkAuth = createAsyncThunk(
       isRefreshing = false;
     }
   }
-); 
+);
+
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (request: ForgotPasswordRequest, { rejectWithValue }) => {
+    try {
+      await axiosInstance.post('/forgot-password', request);
+      return { success: true };
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to send reset instructions');
+      }
+      return rejectWithValue('An unexpected error occurred');
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async (request: ResetPasswordRequest, { rejectWithValue }) => {
+    try {
+      await axiosInstance.post('/reset-password', request);
+      return { success: true };
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.data) {
+        return rejectWithValue(error.response.data.error || 'Failed to reset password');
+      }
+      return rejectWithValue('An unexpected error occurred');
+    }
+  }
+);
