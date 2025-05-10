@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ProfileHeader } from './header/ProfileHeader';
 import { TabContent } from './tabs/TabContent';
 import { TimeRangeProvider } from './context/TimeRangeContext';
 import { useTimelineFilter } from '../../hooks/useTimelineFilter';
 import { useProfileAnalytics } from '../../hooks/useProfileAnalytics';
+import { PostType } from '../../types/postType';
 
 // Create a separate component for the content that needs TimeRange context
 const ProfileContent: React.FC<{
@@ -13,7 +14,9 @@ const ProfileContent: React.FC<{
   startDate: Date | null;
   endDate: Date | null;
   onDateChange: (start: Date | null, end: Date | null) => void;
-}> = ({ handle, activeTab, startDate, endDate, onDateChange }) => {
+  selectedType: PostType | 'all';
+  onTypeChange: (type: PostType | 'all') => void;
+}> = ({ handle, activeTab, startDate, endDate, onDateChange, selectedType, onTypeChange }) => {
   const [isApiLoading, setIsApiLoading] = React.useState<boolean>(false);
   const analytics = useProfileAnalytics(handle);
   const memoizedAnalytics = useMemo(() => analytics, [analytics]);
@@ -24,6 +27,11 @@ const ProfileContent: React.FC<{
         handle={handle}
         analytics={memoizedAnalytics}
         isApiLoading={isApiLoading}
+        selectedType={selectedType}
+        onTypeChange={onTypeChange}
+        startDate={startDate}
+        endDate={endDate}
+        onDateChange={onDateChange}
       />
       <TabContent
         activeTab={activeTab}
@@ -42,6 +50,7 @@ export const ProfileDashboard: React.FC = () => {
   const { handle } = useParams<{ handle: string }>();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'analytics';
+  const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
 
   const {
     timeRange,
@@ -70,6 +79,8 @@ export const ProfileDashboard: React.FC = () => {
           startDate={startDate}
           endDate={endDate}
           onDateChange={handleDateRangeChange}
+          selectedType={selectedType}
+          onTypeChange={setSelectedType}
         />
       </div>
     </TimeRangeProvider>

@@ -6,14 +6,29 @@ import { SaveProfileButton } from '../../common/SaveProfileButton';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { UserX } from 'lucide-react';
 import { convertImageToBase64 } from '../../../services/postsService';
+import { PostType } from '../../../types/postType';
 
 interface ProfileHeaderProps {
   handle: string;
   analytics: UseProfileAnalyticsResult;
   isApiLoading?: boolean;
+  selectedType?: PostType | 'all';
+  onTypeChange?: (type: PostType | 'all') => void;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  onDateChange?: (start: Date | null, end: Date | null) => void;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics, isApiLoading = false }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
+  handle, 
+  analytics, 
+  isApiLoading = false,
+  selectedType = 'all',
+  onTypeChange,
+  startDate,
+  endDate,
+  onDateChange
+}) => {
   const { profileData, isLoading, error } = analytics;
   const [profilePicBase64, setProfilePicBase64] = useState<string>('');
 
@@ -109,7 +124,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ handle, analytics,
 
       {/* Tabs */}
       <div className="mt-4 sm:mt-6">
-        <ProfileTabs isApiLoading={isApiLoading} />
+        <ProfileTabs 
+          isApiLoading={isApiLoading} 
+          selectedType={selectedType}
+          onTypeChange={onTypeChange}
+          startDate={startDate}
+          endDate={endDate}
+          onDateChange={onDateChange}
+        />
       </div>
     </div>
   );

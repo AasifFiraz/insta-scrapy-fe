@@ -1,8 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchResult } from "./SearchResult";
-import { useDebounce } from "../../hooks/useDebounce";
-import axiosInstance from "../../utils/axios";
 
 interface SearchResult {
   username: string;
@@ -16,41 +14,18 @@ interface SearchDropdownProps {
   query: string;
   selectedIndex: number;
   onSelect: (handle: string) => void;
+  results: SearchResult[];
+  isLoading: boolean;
 }
 
 export const SearchDropdown: React.FC<SearchDropdownProps> = ({
   query,
   selectedIndex,
   onSelect,
+  results,
+  isLoading
 }) => {
   const navigate = useNavigate();
-  const [results, setResults] = React.useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const debouncedQuery = useDebounce(query, 1000);
-
-  React.useEffect(() => {
-    const fetchResults = async () => {
-      if (debouncedQuery.length < 2) {
-        setResults([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const response = await axiosInstance.get('/search/profiles', {
-          params: { q: debouncedQuery }
-        });
-        setResults(response.data);
-      } catch (error) {
-        console.error("Search error:", error);
-        setResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchResults();
-  }, [debouncedQuery]);
 
   const handleSeeAllResults = () => {
     navigate(`/search?q=${encodeURIComponent(query)}`);

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Post } from '../../../types/post';
 import { formatNumber } from '../../../utils/numberFormat';
 import { formatDistanceToNow } from '../../../utils/dateFormat';
-import { FileText, AlignLeft, FileCode, MessageSquare, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { /* FileText, AlignLeft - commented out as no longer used after hiding those buttons */
+  FileCode, MessageSquare, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { MobileStructurePopup } from '../../common/MobileStructurePopup';
-import { generateCaptionStructure, processPostMedia } from '../../../services/postsService';
+// Commented out generateCaptionStructure as it's no longer used after commenting out the captionStructure case
+import { /* generateCaptionStructure, */ processPostMedia } from '../../../services/postsService';
 import { EmptyState } from './EmptyState';
 import { PostType } from '../../../types/postType';
 import { orderBy } from 'lodash';
@@ -195,47 +197,49 @@ export const PostList: React.FC<PostListProps> = ({
         text = post.copy.caption;
         title = 'Caption Copy';
         break;
-      case 'postStructure':
-        text = post.copy.postStructure;
-        title = 'Post Structure';
-        break;
-      case 'captionStructure':
-        // Show loading state immediately
+      // Post Structure case - commented out as requested
+    /*case 'postStructure':
+      text = post.copy.postStructure;
+      title = 'Post Structure';
+      break;*/
+    // Caption Structure case - commented out as requested
+    /*case 'captionStructure':
+      // Show loading state immediately
+      setSelectedContent({
+        type,
+        text: '',
+        postType: post.type,
+        title: 'Caption Structure',
+        isLoading: true
+      });
+
+      try {
+        // Generate caption structure
+        const structuredCaption = await generateCaptionStructure(
+          post.copy.caption,
+          post.context
+        );
+
+        // Update with generated content
         setSelectedContent({
           type,
-          text: '',
+          text: structuredCaption,
           postType: post.type,
           title: 'Caption Structure',
-          isLoading: true
+          isLoading: false
         });
-
-        try {
-          // Generate caption structure
-          const structuredCaption = await generateCaptionStructure(
-            post.copy.caption,
-            post.context
-          );
-
-          // Update with generated content
-          setSelectedContent({
-            type,
-            text: structuredCaption,
-            postType: post.type,
-            title: 'Caption Structure',
-            isLoading: false
-          });
-          return;
-        } catch (error) {
-          console.error('Error generating caption structure:', error);
-          setSelectedContent({
-            type,
-            text: 'Failed to generate caption structure. Please try again.',
-            postType: post.type,
-            title: 'Caption Structure',
-            isLoading: false
-          });
-          return;
-        }
+        return;
+      } catch (error) {
+        console.error('Error generating caption structure:', error);
+        setSelectedContent({
+          type,
+          text: 'Failed to generate caption structure. Please try again.',
+          postType: post.type,
+          title: 'Caption Structure',
+          isLoading: false
+        });
+        return;
+      }*/
     }
 
     // if (type !== 'post') {
@@ -344,6 +348,7 @@ export const PostList: React.FC<PostListProps> = ({
                     >
                       <MessageSquare className="w-4 h-4" />
                     </button>
+                    {/* Post Structure button - commented out as requested
                     <button
                       className="p-2 rounded-lg text-gray-400/50 cursor-not-allowed group relative"
                       title="Coming Soon"
@@ -351,6 +356,8 @@ export const PostList: React.FC<PostListProps> = ({
                     >
                       <FileText className="w-4 h-4" />
                     </button>
+                    */}
+                    {/* Caption Structure button - commented out as requested
                     <button
                       className="p-2 rounded-lg text-gray-400/50 cursor-not-allowed group relative"
                       title="Coming Soon"
@@ -358,6 +365,7 @@ export const PostList: React.FC<PostListProps> = ({
                     >
                       <AlignLeft className="w-4 h-4" />
                     </button>
+                    */}
                   </div>
                 </td>
               </tr>
@@ -455,6 +463,7 @@ export const PostList: React.FC<PostListProps> = ({
                   >
                     <MessageSquare className="w-4 h-4" />
                   </button>
+                  {/* Post Structure button - commented out as requested
                   <button
                     className="p-2 rounded-lg bg-white/5 text-gray-400/50 cursor-not-allowed group relative"
                     title="Coming Soon"
@@ -462,6 +471,8 @@ export const PostList: React.FC<PostListProps> = ({
                   >
                     <FileText className="w-4 h-4" />
                   </button>
+                  */}
+                  {/* Caption Structure button - commented out as requested
                   <button
                     className="p-2 rounded-lg bg-white/5 text-gray-400/50 cursor-not-allowed group relative"
                     title="Coming Soon"
@@ -469,6 +480,7 @@ export const PostList: React.FC<PostListProps> = ({
                   >
                     <AlignLeft className="w-4 h-4" />
                   </button>
+                  */}
                 </div>
               </div>
             </div>

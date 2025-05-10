@@ -4,7 +4,6 @@ import { AnalyticsTab } from '../analytics/AnalyticsTab';
 import { PostsTab } from '../posts/PostsTab';
 import { UseProfileAnalyticsResult } from '../../../hooks/useProfileAnalytics';
 import { useAuth } from '../../../hooks/useAuth';
-import { FiltersBar } from '../filters/FiltersBar';
 import { PostType } from '../../../types/postType';
 
 interface TabContentProps {
@@ -53,16 +52,6 @@ export const TabContent: React.FC<TabContentProps> = ({
           case 'posts':
             return (
               <>
-                {/* Filters - Only shown for Posts tab */}
-                <FiltersBar
-                  selectedType={selectedType}
-                  onTypeChange={setSelectedType}
-                  startDate={startDate}
-                  endDate={endDate}
-                  onDateChange={onDateChange}
-                  isLoading={isApiLoading}
-                />
-
                 {/* Posts Tab Content */}
                 <PostsTab
                   handle={handle}

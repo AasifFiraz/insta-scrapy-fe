@@ -4,12 +4,19 @@ import { SUGGESTED_PROFILES } from '../../data/mockProfiles';
 
 export const PopularChannels: React.FC = () => {
   const navigate = useNavigate();
+  
+  // Create a reordered array with MrBeast first, Alex second, Leila third
+  const orderedProfiles = [
+    SUGGESTED_PROFILES.find(profile => profile.handle === 'mrbeast'),
+    SUGGESTED_PROFILES.find(profile => profile.handle === 'hormozi'),
+    SUGGESTED_PROFILES.find(profile => profile.handle === 'leilahormozi')
+  ].filter((profile): profile is typeof SUGGESTED_PROFILES[0] => profile !== undefined)
 
   return (
     <div className="mt-12">
       <h2 className="text-white/80 text-sm mb-4">Popular Profiles</h2>
       <div className="flex flex-wrap justify-center gap-2">
-        {SUGGESTED_PROFILES.slice(0, 4).map((profile) => (
+        {orderedProfiles.map((profile) => (
           <button
             key={profile.id}
             onClick={() => navigate(`/profile/${profile.handle}`)}
