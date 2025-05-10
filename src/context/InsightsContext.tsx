@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { InsightsMetrics } from '../types/insights';
 import { getInsights, mapInsightsResponseToMetrics } from '../services/insightsService';
 import { differenceInDays } from 'date-fns';
@@ -33,11 +33,39 @@ export const InsightsProvider: React.FC<InsightsProviderProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [fetchCounter, setFetchCounter] = useState(0);
 
+  // Track filter changes with a ref to prevent duplicate API calls
+  const previousFilters = React.useRef({ handle, postType, startDate, endDate });
+  const isInitialRender = React.useRef(true);
+
   useEffect(() => {
     const loadMetrics = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
+        // Check if any of the filter values have actually changed
+        const prevFilters = previousFilters.current;
+        const filtersChanged = 
+          prevFilters.handle !== handle ||
+          prevFilters.postType !== postType ||
+          prevFilters.startDate !== startDate ||
+          prevFilters.endDate !== endDate ||
+          fetchCounter > 0;
+
+        // Skip the API call if this is just the component mounting with the same filters
+        if (isInitialRender.current) {
+          isInitialRender.current = false;
+          // Still set loading state for UI consistency
+          setIsLoading(true);
+        } else if (!filtersChanged) {
+          // Skip duplicate API calls if filters haven't changed
+          console.log('InsightsContext: Skipping duplicate insights API call - no filter changes detected');
+          return;
+        } else {
+          // Update loading state for filter changes
+          setIsLoading(true);
+          setError(null);
+        }
+
+        // Update the previous filters ref
+        previousFilters.current = { handle, postType, startDate, endDate };
 
         // Calculate days from endDate to startDate, default to 7 if not provided
         let days = 7;
@@ -50,22 +78,28 @@ export const InsightsProvider: React.FC<InsightsProviderProps> = ({
         // Only pass postType if it's not 'all'
         const type = postType === 'all' ? undefined : postType;
 
-        console.log(`Fetching insights with days=${days}, type=${type || 'all'}`);
+        console.log(`InsightsContext: Fetching insights with days=${days}, type=${type || 'all'}, handle=${handle}`);
         
         // Make a single API call
         const response = await getInsights(handle, days, type);
         const mappedMetrics = mapInsightsResponseToMetrics(response);
         setMetrics(mappedMetrics);
+        console.log('InsightsContext: Successfully fetched and mapped metrics');
       } catch (err) {
         setError('Failed to load insights metrics');
-        console.error('Error loading insights metrics:', err);
+        console.error('InsightsContext: Error loading insights metrics:', err);
       } finally {
-        console.log(`Done Fetching Insights for ${handle}`);
+        console.log(`InsightsContext: Done Fetching Insights for ${handle} with type=${postType}`);
         setIsLoading(false);
       }
     };
 
-    loadMetrics();
+    // Only load metrics if we have a valid handle
+    if (handle) {
+      loadMetrics();
+    } else {
+      console.warn('InsightsContext: No handle provided, skipping metrics fetch');
+    }
   }, [handle, startDate, endDate, postType, fetchCounter]);
 
   const refetch = () => {

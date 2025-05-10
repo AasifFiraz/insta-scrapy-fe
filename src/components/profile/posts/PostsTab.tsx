@@ -78,14 +78,22 @@ export const PostsTab: React.FC<PostsTabProps> = ({
     }
   }, [isTypingComplete]);
 
-  // Update the parent component's selectedType when it changes in this component
+  // Log when the selectedType prop changes but don't force re-fetches here
   useEffect(() => {
-    // This ensures the parent component's state is updated when the API returns new data
-    // based on the selected type
-    if (posts && posts.length > 0) {
+    console.log(`PostsTab: selectedType changed to ${selectedType}`);
+    
+    // Just update UI states to show loading indicators
+    // The actual API calls will be handled by the respective hooks
+    setApiCallsComplete(false);
+  }, [selectedType]);
+  
+  // Ensure the parent component is aware of the current selectedType
+  useEffect(() => {
+    // This helps maintain consistency between components
+    if (onTypeChange) {
       onTypeChange(selectedType);
     }
-  }, [posts, selectedType, onTypeChange]);
+  }, [selectedType, onTypeChange]);
 
   // Track posts loading state changes to update apiCallsComplete
 

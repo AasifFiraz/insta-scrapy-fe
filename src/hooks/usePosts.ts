@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Post } from '../types/post';
 import { PostType } from '../types/postType';
 import { getPosts } from '../services/postsService';
-import { getInsights } from '../services/insightsService';
 import { differenceInDays } from 'date-fns';
 
 interface UsePostsProps {
@@ -35,18 +34,55 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
   // Track if the next button was clicked
   const [isNextPageClick, setIsNextPageClick] = useState(false);
 
-  // Reset pagination when postType changes
+  // Reset pagination when filter params change
   useEffect(() => {
+    console.log(`usePosts: Filter changed - postType: ${postType}, startDate: ${startDate}, endDate: ${endDate}`);
     setCurrentPage(1);
     setReachedEnd(false);
+    // Reset posts to trigger loading state
+    setPosts([]);
+    setIsLoading(true);
+    // We don't need to call the API here as it will be triggered by the main useEffect below
   }, [postType, startDate, endDate]);
+
+  // Use a ref to track if this is the initial render
+  const isInitialRender = React.useRef(true);
+  // Use a ref to track the last filter values to prevent duplicate API calls
+  const lastFilterValues = React.useRef({ handle, postType, startDate, endDate, currentPage });
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
-        setPosts([]); // Reset posts when fetching new ones
+        // Skip the API call if this is just the component mounting with the same filters
+        // This prevents duplicate API calls on initial render
+        if (isInitialRender.current) {
+          isInitialRender.current = false;
+          // Still set loading state for UI consistency
+          setIsLoading(true);
+        } else {
+          // Check if any of the filter values have actually changed
+          const prevFilters = lastFilterValues.current;
+          const filtersChanged = 
+            prevFilters.handle !== handle ||
+            prevFilters.postType !== postType ||
+            prevFilters.currentPage !== currentPage ||
+            prevFilters.startDate !== startDate ||
+            prevFilters.endDate !== endDate;
+
+          // Only proceed with the API call if filters have changed
+          if (!filtersChanged && !isNextPageClick) {
+            console.log('Skipping duplicate posts API call - no filter changes detected');
+            return;
+          }
+
+          // Update the last filter values
+          lastFilterValues.current = { handle, postType, startDate, endDate, currentPage };
+          
+          // Set loading state and reset posts
+          setIsLoading(true);
+          setError(null);
+          setPosts([]);
+        }
 
         // Calculate days from endDate to startDate, default to 7 if not provided
         const days = startDate && endDate
@@ -55,6 +91,8 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
 
         // Only pass postType if it's not 'all'
         const type = postType === 'all' ? undefined : postType;
+
+        console.log(`usePosts: Making API call with type=${type || 'all'}, days=${days}, page=${currentPage}`);
 
         // Create a map to store posts in order of completion
         const postsMap = new Map<string, Post>();
@@ -89,19 +127,13 @@ export const usePosts = ({ handle, postType = 'all', startDate, endDate }: UsePo
         setIsLoading(false);
 
         // After successful posts API call, check if we need to call insights API
+        // We've removed this to prevent duplicate insights API calls
+        // The insights will be fetched by the InsightsContext component
         if (isNextPageClick) {
-          try {
-            // Call the insights API with the same days parameter
-            await getInsights(handle, days, type);
-          } catch (insightsErr) {
-            console.error('Error fetching insights after pagination:', insightsErr);
-            // We don't set an error state here as we don't want to affect the posts display
-          } finally {
-            // Reset the next page click flag
-            setIsNextPageClick(false);
-          }
+          setIsNextPageClick(false);
         }
       } catch (err) {
+        console.error('Error fetching posts:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch posts');
         setIsLoading(false);
         // Reset the next page click flag if there was an error

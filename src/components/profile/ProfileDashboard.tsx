@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ProfileHeader } from './header/ProfileHeader';
 import { TabContent } from './tabs/TabContent';
@@ -41,6 +41,8 @@ const ProfileContent: React.FC<{
         onDateChange={onDateChange}
         analytics={memoizedAnalytics}
         onApiLoadingChange={setIsApiLoading}
+        selectedType={selectedType}
+        onTypeChange={onTypeChange}
       />
     </div>
   );
@@ -51,6 +53,12 @@ export const ProfileDashboard: React.FC = () => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'analytics';
   const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
+  
+  // Enhanced handler for post type changes
+  const handlePostTypeChange = useCallback((type: PostType | 'all') => {
+    console.log(`ProfileDashboard: Post type changed to ${type}`);
+    setSelectedType(type);
+  }, []);
 
   const {
     timeRange,
@@ -80,7 +88,7 @@ export const ProfileDashboard: React.FC = () => {
           endDate={endDate}
           onDateChange={handleDateRangeChange}
           selectedType={selectedType}
-          onTypeChange={setSelectedType}
+          onTypeChange={handlePostTypeChange}
         />
       </div>
     </TimeRangeProvider>

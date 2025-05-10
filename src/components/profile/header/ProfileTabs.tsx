@@ -65,6 +65,10 @@ export const ProfileTabs: React.FC<ProfileTabsProps> = ({
   // Handle post type change
   const handleTypeChange = (type: PostType | 'all') => {
     if (onTypeChange) {
+      // Log the filter change for debugging
+      console.log(`Changing post type filter to: ${type}`);
+      
+      // Trigger the type change callback
       onTypeChange(type);
     }
   };

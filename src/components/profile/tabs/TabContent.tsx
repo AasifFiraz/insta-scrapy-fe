@@ -14,6 +14,8 @@ interface TabContentProps {
   onDateChange?: (start: Date | null, end: Date | null) => void;
   analytics: UseProfileAnalyticsResult;
   onApiLoadingChange?: (isLoading: boolean) => void;
+  selectedType?: PostType | 'all';
+  onTypeChange?: (type: PostType | 'all') => void;
 }
 
 export const TabContent: React.FC<TabContentProps> = ({
@@ -23,11 +25,17 @@ export const TabContent: React.FC<TabContentProps> = ({
   endDate,
   onDateChange,
   analytics,
-  onApiLoadingChange
+  onApiLoadingChange,
+  selectedType = 'all',
+  onTypeChange
 }) => {
   const { isAuthenticated } = useAuth();
-  const [selectedType, setSelectedType] = useState<PostType | 'all'>('all');
   const [isApiLoading, setIsApiLoading] = useState<boolean>(false);
+  
+  // Log when selectedType changes
+  useEffect(() => {
+    console.log(`TabContent: selectedType changed to ${selectedType}`);
+  }, [selectedType]);
 
   // Notify parent component about API loading state changes
   useEffect(() => {
@@ -59,7 +67,7 @@ export const TabContent: React.FC<TabContentProps> = ({
                   endDate={endDate}
                   onDateChange={onDateChange}
                   selectedType={selectedType}
-                  onTypeChange={setSelectedType}
+                  onTypeChange={onTypeChange || (() => {})}
                   onLoadingStateChange={setIsApiLoading}
                 />
               </>
